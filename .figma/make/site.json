@@ -1,0 +1,10 @@
+{
+  "description": "Enhance your website with a customizable top bar featuring a college logo and a real-time clock, perfect for educational institutions.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
