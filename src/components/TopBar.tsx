@@ -9,7 +9,6 @@ import {
   X,
   Megaphone,
 } from "lucide-react";
-import collegeHeader from "@/imports/ChatGPT_Image_Sep_7__2026__03_33_52_PM-1.png";
 import type { View } from "@/App";
 
 const links: { label: string; view: View; icon: typeof Home }[] = [
@@ -55,7 +54,7 @@ export function TopBar({
       {/* College header image — full width (edges clipped to hide the image's dark frame) */}
       <div className="flex w-full items-center overflow-hidden px-3 py-2">
         <img
-          src={collegeHeader}
+          src="/college-header.png"
           alt="Kuppam Engineering College (UGC - Autonomous)"
           className="h-auto w-full scale-[1.04] object-contain"
         />
