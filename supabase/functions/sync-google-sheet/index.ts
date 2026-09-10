@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { JWT } from "npm:google-auth-library@9.6.3";
 import { GoogleSpreadsheet } from "npm:google-spreadsheet@4.1.1";

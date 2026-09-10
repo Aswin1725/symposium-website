@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Supabase Edge Function — create-razorpay-order
 // Runs on Deno / Supabase Edge Runtime (never in the browser).
 // The Razorpay Key SECRET is read from environment, never sent to the client.

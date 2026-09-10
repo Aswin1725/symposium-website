@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Supabase Edge Function — verify-razorpay-payment
 // 1. Verifies Razorpay HMAC-SHA256 signature (server-side only)
 // 2. Inserts registration, members, and payment into Supabase
