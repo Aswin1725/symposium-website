@@ -11,6 +11,7 @@ import type {
   MemberRow,
   PaymentRow,
 } from "@/lib/types";
+import { uploadIdCard } from "@/lib/storage";
 
 // Re-export types
 export type {
@@ -93,6 +94,13 @@ async function assembleRegistration(
 
     createdAt:
       row.created_at,
+
+    paymentStatus:
+      paymentRow?.payment_status ?? "PENDING",
+
+    paymentMethod:
+      paymentRow?.remarks ??
+      (paymentRow?.payment_status === "VERIFIED" ? "ONLINE" : "NOT COLLECTED"),
   };
 }
 
@@ -105,7 +113,76 @@ async function assembleRegistration(
 // See: src/lib/payment.ts → payAndRegister()
 // ---------------------------------------------------------------------------
 
+export async function registerDirectly(payload: {
+  event: string;
+  teamName: string;
+  college: string;
+  members: { name: string; phone: string; email: string; idCardFile: File | null }[];
+  totalAmount: number;
+}): Promise<{ registration_number: string }> {
+  // 1. Generate unique registration number
+  const regNum = "NEX-" + Math.floor(Math.random() * 900000 + 100000);
 
+  // 2. Fetch event ID
+  const { data: evData, error: evErr } = await supabase
+    .from("events")
+    .select("id")
+    .eq("name", payload.event)
+    .single();
+
+  if (evErr || !evData) throw new Error("Event not found");
+
+  // 3. Create registration
+  const { data: regData, error: regErr } = await supabase
+    .from("registrations")
+    .insert({
+      registration_number: regNum,
+      event_id: evData.id,
+      team_name: payload.teamName,
+      college_name: payload.college,
+      amount: payload.totalAmount,
+      registration_status: "ACCEPTED", // As requested: save ACCEPTED in DB
+    })
+    .select("id")
+    .single();
+
+  if (regErr || !regData) throw new Error("Failed to create registration: " + (regErr?.message || ""));
+
+  const regId = regData.id;
+
+  // 4. Upload ID cards using registration ID as folder
+  const memberPaths = await Promise.all(
+    payload.members.map(async (m, idx) => {
+      if (!m.idCardFile) return null;
+      return await uploadIdCard(regId, idx, m.idCardFile);
+    })
+  );
+
+  // 5. Insert members
+  const memberInserts = payload.members.map((m, idx) => ({
+    registration_id: regId,
+    member_number: idx + 1,
+    full_name: m.name,
+    phone: m.phone,
+    email: m.email,
+    id_card_path: memberPaths[idx],
+  }));
+
+  const { error: memErr } = await supabase.from("members").insert(memberInserts);
+  if (memErr) throw new Error("Failed to save members: " + memErr.message);
+
+  // 6. Insert payment as PENDING and NOT COLLECTED
+  const { error: payErr } = await supabase.from("payments").insert({
+    registration_id: regId,
+    amount: payload.totalAmount,
+    payment_status: "PENDING",
+    remarks: "NOT COLLECTED",
+    utr_number: "PAY_AT_EVENT",
+  });
+  if (payErr) throw new Error("Failed to save payment status: " + payErr.message);
+
+  return { registration_number: regNum };
+}
 
 // ---------------------------------------------------------------------------
 // Find one registration
@@ -651,10 +728,68 @@ export function isPaymentVerified(
   r: Registration,
 ): boolean {
   return (
-    String(r.status).toLowerCase() ===
-    "accepted"
+    r.paymentStatus?.toUpperCase() === "VERIFIED"
   );
 }
+
+// ---------------------------------------------------------------------------
+// Collect Payment at Event
+// ---------------------------------------------------------------------------
+
+export async function collectPayment(
+  registrationId: string,
+  method: "CASH" | "ONLINE",
+  collectedBy?: string,
+  amount?: number,
+): Promise<void> {
+  if (!registrationId) {
+    throw new Error("Registration ID is missing.");
+  }
+
+  const { data, error } = await supabase
+    .from("payments")
+    .update({
+      payment_status: "VERIFIED",
+      remarks: method,
+      verified_at: new Date().toISOString(),
+      verified_by: collectedBy || "COORDINATOR",
+    })
+    .eq("registration_id", registrationId)
+    .select();
+
+  if (error) {
+    console.error("Failed to collect payment:", error);
+    throw new Error(`Failed to update payment status: ${error.message}`);
+  }
+
+  // If no payment row existed for this registration, insert one with amount
+  if (!data || data.length === 0) {
+    let finalAmount = amount;
+    if (finalAmount === undefined || finalAmount === null) {
+      const { data: regRow } = await supabase
+        .from("registrations")
+        .select("amount")
+        .eq("id", registrationId)
+        .single();
+      finalAmount = regRow?.amount ?? 0;
+    }
+
+    const { error: insErr } = await supabase.from("payments").insert({
+      registration_id: registrationId,
+      amount: finalAmount,
+      payment_status: "VERIFIED",
+      remarks: method,
+      verified_at: new Date().toISOString(),
+      verified_by: collectedBy || "COORDINATOR",
+      utr_number: method === "CASH" ? "CASH_COLLECTED" : "ONLINE_COLLECTED",
+    });
+    if (insErr) {
+      console.error("Failed to insert payment record:", insErr);
+      throw new Error(`Failed to insert payment record: ${insErr.message}`);
+    }
+  }
+}
+
 
 // ---------------------------------------------------------------------------
 // Group helper

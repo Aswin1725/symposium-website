@@ -1,4 +1,5 @@
 import { MapPin, CalendarDays, ArrowRight } from "lucide-react";
+import symposiumLogo from "@/imports/image-1.png";
 
 export function Hero({ onRegister }: { onRegister: () => void }) {
   return (
@@ -38,7 +39,7 @@ export function Hero({ onRegister }: { onRegister: () => void }) {
             }}
           />
           <img
-            src="/image-1.png"
+            src={symposiumLogo}
             alt="Kuppam Educational Society emblem"
             className="relative h-full w-full object-contain drop-shadow-[0_20px_45px_rgba(18,87,184,0.25)]"
             style={{ animation: "nextron-spin 60s linear infinite" }}

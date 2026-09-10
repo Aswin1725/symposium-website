@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // payment.ts
 // Client-side helpers for the Razorpay payment flow.
 // ---------------------------------------------------------------------------
@@ -137,7 +137,7 @@ async function verifyAndSaveRegistration(payload: {
     event_name: string;
     team_name: string;
     college_name: string;
-    members: { name: string; phone: string; email: string }[];
+    members: { name: string; phone: string; email: string; id_card_path?: string | null }[];
   };
 }): Promise<{ success: boolean; registration_number: string; registration_id: string }> {
   const { data: sessionData } = await supabase.auth.getSession();
@@ -163,35 +163,6 @@ async function verifyAndSaveRegistration(payload: {
   }
 
   return data;
-}
-
-// ---------------------------------------------------------------------------
-// Step 4: Upload ID cards to Supabase Storage and patch members table
-// ---------------------------------------------------------------------------
-
-async function uploadIdCardsAndPatch(
-  regId: string,
-  members: RegistrationMember[],
-): Promise<void> {
-  await Promise.all(
-    members.map(async (m, idx) => {
-      if (!m.idCardFile) return;
-
-      try {
-        const path = await uploadIdCard(regId, idx, m.idCardFile);
-
-        // Patch the id_card_path for this member (member_number is 1-based)
-        await supabase
-          .from("members")
-          .update({ id_card_path: path })
-          .eq("registration_id", regId)
-          .eq("member_number", idx + 1);
-      } catch (err) {
-        // Non-fatal: log but don't block the success screen
-        console.error(`ID card upload failed for member ${idx + 1}:`, err);
-      }
-    }),
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -243,8 +214,16 @@ export async function payAndRegister(
       callbacks.onPaymentCancelled();
     },
     onSuccess: async (response) => {
-      // 4. Verify payment server-side + save registration
       try {
+        // 4. Upload ID cards FIRST using razorpay_order_id as the folder
+        const memberPaths = await Promise.all(
+          data.members.map(async (m, idx) => {
+            if (!m.idCardFile) return null;
+            return await uploadIdCard(response.razorpay_order_id, idx, m.idCardFile);
+          })
+        );
+
+        // 5. Verify payment server-side + save registration
         const result = await verifyAndSaveRegistration({
           razorpay_order_id: response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
@@ -253,18 +232,14 @@ export async function payAndRegister(
             event_name: data.event,
             team_name: data.teamName,
             college_name: data.college,
-            members: data.members.map((m) => ({
+            members: data.members.map((m, idx) => ({
               name: m.name,
               phone: m.phone,
               email: m.email,
+              id_card_path: memberPaths[idx],
             })),
           },
         });
-
-        // 5. Upload ID cards in background (non-blocking for success screen)
-        uploadIdCardsAndPatch(result.registration_id, data.members).catch(
-          (err) => console.error("ID card upload error:", err),
-        );
 
         callbacks.onSuccess(result.registration_number);
       } catch (err) {

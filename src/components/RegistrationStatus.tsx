@@ -6,33 +6,12 @@ import {
   XCircle,
   Ticket,
 } from "lucide-react";
-import { findRegistration, type Registration } from "@/lib/registrations";
+import { findRegistration, isPaymentVerified, type Registration } from "@/lib/registrations";
 
 type Result =
   | { kind: "idle" }
   | { kind: "notfound" }
   | { kind: "found"; reg: Registration };
-
-const statusMeta = {
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    className: "bg-amber-50 text-amber-600 border-amber-200",
-    note: "Your payment is being verified by the admin. Please check back later.",
-  },
-  accepted: {
-    label: "Accepted",
-    icon: CheckCircle2,
-    className: "bg-emerald-50 text-emerald-600 border-emerald-200",
-    note: "Your registration is confirmed. See you at NEXTRON-2026!",
-  },
-  rejected: {
-    label: "Rejected",
-    icon: XCircle,
-    className: "bg-red-50 text-[var(--color-flame)] border-red-200",
-    note: "Payment could not be verified. Please contact the coordinators.",
-  },
-} as const;
 
 export function RegistrationStatus() {
   const [query, setQuery] = useState("");
@@ -65,7 +44,7 @@ export function RegistrationStatus() {
           <div className="mt-4 h-1 w-16 rounded-full bg-[var(--color-electric)]" />
           <p className="mt-4 max-w-md text-sm text-slate-500">
             Enter the registration number you received after submitting your
-            entry to check its current status.
+            entry to check your registration and payment status.
           </p>
         </div>
 
@@ -98,8 +77,7 @@ export function RegistrationStatus() {
 
         {result.kind === "found" &&
           (() => {
-            const meta = statusMeta[result.reg.status];
-            const Icon = meta.icon;
+            const isPaid = isPaymentVerified(result.reg);
             return (
               <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-electric)]/15 bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-[var(--color-electric)]/10 bg-[var(--color-paper)] px-6 py-4">
@@ -111,11 +89,9 @@ export function RegistrationStatus() {
                       {result.reg.registration_number}
                     </p>
                   </div>
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 font-display text-sm font-semibold uppercase tracking-widest ${meta.className}`}
-                  >
-                    <Icon className="size-4" />
-                    {meta.label}
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 font-display text-sm font-semibold uppercase tracking-widest text-emerald-600">
+                    <CheckCircle2 className="size-4" />
+                    Slot Booked
                   </span>
                 </div>
                 <dl className="grid gap-3 px-6 py-5 text-sm">
@@ -143,10 +119,50 @@ export function RegistrationStatus() {
                       {result.reg.members.length}
                     </dd>
                   </div>
+                  <div className="flex justify-between items-center gap-4 border-t border-slate-100 pt-3">
+                    <dt className="text-slate-500 font-medium">Total Amount</dt>
+                    <dd className="text-right font-display text-base font-bold text-[var(--color-ink)]">
+                      ₹{result.reg.amount}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between items-center gap-4">
+                    <dt className="text-slate-500 font-medium">Payment Status</dt>
+                    <dd className="text-right">
+                      {isPaid ? (
+                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                          <CheckCircle2 className="size-4" />
+                          Payment Received
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
+                          <Clock className="size-4" />
+                          Payment Not Collected
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                  {isPaid && result.reg.paymentMethod && (
+                    <div className="flex justify-between items-center gap-4">
+                      <dt className="text-slate-500">Payment Mode</dt>
+                      <dd className="text-right font-medium text-[var(--color-ink)]">
+                        {result.reg.paymentMethod}
+                      </dd>
+                    </div>
+                  )}
                 </dl>
-                <p className="border-t border-[var(--color-electric)]/10 bg-[var(--color-paper)] px-6 py-3 text-xs text-slate-500">
-                  {meta.note}
-                </p>
+                <div
+                  className={`border-t px-6 py-3.5 text-xs font-medium ${
+                    isPaid
+                      ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+                      : "border-amber-100 bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  {isPaid ? (
+                    <p>✓ Payment verified at event registration desk ({result.reg.paymentMethod || "PAID"}). We look forward to seeing you at the event!</p>
+                  ) : (
+                    <p>Please pay the registration fee of ₹{result.reg.amount} at the event registration desk on the event day.</p>
+                  )}
+                </div>
               </div>
             );
           })()}
@@ -156,3 +172,4 @@ export function RegistrationStatus() {
 }
 
 export default RegistrationStatus;
+

@@ -7,7 +7,7 @@ const patrons = [
     name: "Dr. G. N. Kodanda Ramaiah",
     role: "HOD of ECE & Director of R&D",
   },
-  { name: "Dr. K. Rasadurai", role: "Vice-HOD, Professor" },
+  { name: "Dr. K. Rasadurai", role: "Professor" },
 ];
 
 function initials(name: string) {

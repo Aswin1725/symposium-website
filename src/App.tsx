@@ -10,11 +10,18 @@ import AdminDashboard from "@/components/AdminDashboard";
 import CoordinatorDashboard from "@/components/CoordinatorDashboard";
 import type { Session } from "@/lib/auth";
 
+import { ViewId } from "@/components/ViewId";
+
 export type View = "home" | "events" | "status" | "login";
 
 export default function App() {
   const [view, setView] = useState<View>("home");
   const [session, setSession] = useState<Session | null>(null);
+
+  // Simple routing for /view-id
+  if (window.location.pathname === "/view-id") {
+    return <ViewId />;
+  }
 
   const navigate = (v: View) => {
     setView(v);

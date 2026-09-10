@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { payAndRegister } from "@/lib/payment";
+import { registerDirectly } from "@/lib/registrations";
 import { supabase } from "@/lib/supabase";
 import {
   X,
@@ -14,11 +14,15 @@ import {
   AlertTriangle,
   Upload,
   MessageCircle,
+  Copy,
+  Check,
+  GraduationCap,
   IndianRupee,
   Loader2,
+  Ticket,
 } from "lucide-react";
 
-type Coordinator = { name: string; phone?: string };
+type Coordinator = { name: string; phone?: string; staff?: boolean };
 
 type EventItem = {
   id: string;
@@ -47,15 +51,16 @@ const events: EventItem[] = [
       "Plagiarism or copied content may lead to disqualification.",
     ],
     coordinators: [
-      { name: "Hari Priya" },
-      { name: "Anitha" },
-      { name: "Varshitha Raj" },
-      { name: "J. Raghavi" },
+      { name: "Dr. P. Ajay Kumar Reddy", staff: true },
+      { name: "Hari Priya", phone: "9390819933" },
+      { name: "Anitha", phone: "9618994179" },
+      { name: "Varshitha Raj", phone: "9390842614" },
+      { name: "J. Raghavi", phone: "9391122951" },
       { name: "N. Mansoor", phone: "8886700676" },
       { name: "V. Lavanya" },
       { name: "M.R. Nikhil", phone: "7013272289" },
-      { name: "Chitra" },
-    ],
+      { name: "Chithra" }
+  ],
     whatsapp: "https://chat.whatsapp.com/LWRVQqJRZVdLuRdQnPefPj",
   },
   {
@@ -72,15 +77,17 @@ const events: EventItem[] = [
       "Judges' decision will be final and binding.",
     ],
     coordinators: [
+      { name: "Dr. Santhosh B. Panjagal", staff: true },
+      { name: "G. Subramani", staff: true },
       { name: "A. Aswin", phone: "9441107161" },
-      { name: "N. Rajani" },
+      { name: "N. Rajani", phone: "9347816893" },
       { name: "P. Sudharshan", phone: "9652245005" },
       { name: "Jaya Shree" },
       { name: "C. Divya" },
       { name: "G. Neeraj Kumar", phone: "9392651621" },
       { name: "Naveen Acharya", phone: "9398064215" },
-      { name: "B.S. Rukmini" },
-    ],
+      { name: "B.S. Rukmini" }
+  ],
     whatsapp: "https://chat.whatsapp.com/Em0lS2NEpF32aGaTjcTKIJ",
   },
   {
@@ -97,6 +104,7 @@ const events: EventItem[] = [
       "Evaluation focuses on logic, correctness, efficiency and execution.",
     ],
     coordinators: [
+      { name: "C. Haritha", staff: true },
       { name: "R. Uma" },
       { name: "V. Sindhu" },
       { name: "Hemanth Kumar", phone: "9618225257" },
@@ -104,8 +112,8 @@ const events: EventItem[] = [
       { name: "S. Bramhani" },
       { name: "A.R.E. Lakshmi Narayana", phone: "8247749668" },
       { name: "Balaji", phone: "8500619223" },
-      { name: "Uma Sri" },
-    ],
+      { name: "Uma Sri" }
+  ],
     whatsapp: "https://chat.whatsapp.com/H1jLQLR68iy4UprRliG01P",
   },
   {
@@ -122,13 +130,14 @@ const events: EventItem[] = [
       "Quiz master's/judges' decision will be final.",
     ],
     coordinators: [
+      { name: "Vivek Kumar Singh", staff: true },
       { name: "D. Sowmya" },
       { name: "B. Dharshan", phone: "9182862973" },
       { name: "D.S. Amrutha" },
       { name: "A. Venkatesh", phone: "9100309531" },
       { name: "B.C. Ashwini" },
-      { name: "Basi Reddy", phone: "9502347515" },
-    ],
+      { name: "Basi Reddy", phone: "9502347515" }
+  ],
     whatsapp: "https://chat.whatsapp.com/JNDEXqg3vmCKuJhMwqFMyx",
   },
   {
@@ -145,14 +154,15 @@ const events: EventItem[] = [
       "Creativity, originality, relevance and visual appeal are evaluated.",
     ],
     coordinators: [
-      { name: "S.P. Meghana" },
-      { name: "Bhavitha" },
-      { name: "Harini" },
+      { name: "D. Siva Kumar", staff: true },
+      { name: "S.P. Meghana", phone: "7842406485" },
+      { name: "Bhavitha", phone: "8074328865" },
+      { name: "Harini", phone: "9177381762" },
       { name: "S. Rekha" },
       { name: "T. Raj Kumar", phone: "9963901941" },
       { name: "Mamatha" },
-      { name: "M. Vamsi", phone: "9989438017" },
-    ],
+      { name: "M. Vamsi", phone: "9989438017" }
+  ],
     whatsapp: "https://chat.whatsapp.com/HAhhjVkhvMnEBSO8okKRtX",
   },
   {
@@ -169,15 +179,17 @@ const events: EventItem[] = [
       "Evaluation focuses on innovation, practicality, impact and presentation.",
     ],
     coordinators: [
+      { name: "Dr. K. Rasadural", staff: true },
+      { name: "M. Ranjith Kumar", staff: true },
       { name: "T. Mukesh", phone: "8639618010" },
       { name: "N. Uday", phone: "9392591037" },
       { name: "Chinnari" },
       { name: "Aruna" },
       { name: "S. Navya" },
       { name: "M.S. Jotheswaran", phone: "6304045864" },
-      { name: "Kowshik Naidu", phone: "9398603417" },
-      { name: "Deekshitha" },
-    ],
+      { name: "Kowsik Naidu", phone: "9398603417" },
+      { name: "Deekshitha" }
+  ],
     whatsapp: "https://chat.whatsapp.com/EG9BaYK2KQB2CpVhHNCMxV",
   },
   {
@@ -194,14 +206,16 @@ const events: EventItem[] = [
       "Creativity, UI/UX, functionality, responsiveness and code quality are evaluated.",
     ],
     coordinators: [
+      { name: "G. Vivek", staff: true },
       { name: "K. Lokesh Reddy", phone: "9391595381" },
       { name: "Jai Durga" },
+      { name: "P. Anil Kumar", phone: "7670973554" },
       { name: "Chaithanya Jyothi" },
       { name: "B. Shirisha" },
-      { name: "K.H. Nunith Kumar Rao", phone: "9985835599" },
+      { name: "K.H. Nunit h Kumar Rao", phone: "9985835599" },
       { name: "Varshitha" },
-      { name: "S. Karthik", phone: "9490436037" },
-    ],
+      { name: "S. Karthik", phone: "9490436037" }
+  ],
     whatsapp: "https://chat.whatsapp.com/Gk6wJULGw1LG1yWR7LZe3U",
   },
   {
@@ -218,15 +232,16 @@ const events: EventItem[] = [
       "Penalties or disqualification may apply for rule violations.",
     ],
     coordinators: [
-      { name: "N.T. Jyosthna" },
-      { name: "M. Akshaya" },
-      { name: "C.M. Reddy Sowjanya" },
-      { name: "Reddy Rani" },
+      { name: "V. Sathiyavani", staff: true },
+      { name: "N.T. Jyoshna", phone: "7815919047" },
+      { name: "M. Akshaya", phone: "8790522891" },
+      { name: "C.M. Reddy Sowjanya", phone: "6309813738" },
+      { name: "Reddy Rani", phone: "7842570157" },
       { name: "H. Vyshnavi" },
       { name: "A. Aravind", phone: "6303383007" },
       { name: "Manyatha" },
-      { name: "Dinesh", phone: "9963259030" },
-    ],
+      { name: "Dinesh", phone: "9963259030" }
+  ],
     whatsapp: "https://chat.whatsapp.com/C8lT707eQ8f1xAAkUTQMqt",
   },
   {
@@ -243,15 +258,16 @@ const events: EventItem[] = [
       "Offensive, inappropriate or copyrighted content misuse is strictly prohibited.",
     ],
     coordinators: [
-      { name: "P. Anil Kumar", phone: "7670973554" },
+      { name: "S. Mohammed Ali", staff: true },
+      { name: "S. Adharsh Reddy", phone: "9381141696" },
       { name: "Umesh Yadhav", phone: "6281883653" },
       { name: "Sai Harshitha" },
-      { name: "C. Revathi" },
+      { name: "Pavitra" },
       { name: "S.A. Abhishek", phone: "9346168289" },
       { name: "B. Shirisha" },
       { name: "Theertha" },
-      { name: "S. Bhanu Prakash", phone: "8977147735" },
-    ],
+      { name: "S. Bhanu Prakash", phone: "8977147735" }
+  ],
     whatsapp: "https://chat.whatsapp.com/E8M2J1kZkzjCLmOg8zT4Ek",
   },
   {
@@ -268,6 +284,7 @@ const events: EventItem[] = [
       "Rule violations may result in immediate disqualification or tournament ban.",
     ],
     coordinators: [
+      { name: "Vivek Kumar Singh", staff: true },
       { name: "Nimith Kumar", phone: "8309201275" },
       { name: "Nayana Sree" },
       { name: "K. Rajesh", phone: "9390501865" },
@@ -275,8 +292,8 @@ const events: EventItem[] = [
       { name: "K. Supriya" },
       { name: "Deva Raj", phone: "8919809096" },
       { name: "Pavani" },
-      { name: "Mohan Sai", phone: "9010096921" },
-    ],
+      { name: "Mohan Sai", phone: "9010096921" }
+  ],
     whatsapp: "https://chat.whatsapp.com/Kjf8koh1wf93SBSB3kIKSv",
   },
   {
@@ -293,14 +310,15 @@ const events: EventItem[] = [
       "Rule violations may result in immediate disqualification or tournament ban.",
     ],
     coordinators: [
+      { name: "Shaik Nayum", staff: true },
       { name: "Mohan Babu", phone: "9705102132" },
       { name: "K.S. Charan", phone: "9347630150" },
       { name: "Thulasi Ram", phone: "9391968391" },
       { name: "P. Bindu" },
       { name: "B. Dinesh", phone: "6281668510" },
       { name: "Tahir Basha", phone: "9533148672" },
-      { name: "Dhamodhar", phone: "9606349783" },
-    ],
+      { name: "Dhamodhar", phone: "9606349783" }
+  ],
     whatsapp: "https://chat.whatsapp.com/EdDDnL5R9UuJRK9D5Nz1bq",
   },
   {
@@ -317,6 +335,7 @@ const events: EventItem[] = [
       "Originality and creativity are considered for evaluation.",
     ],
     coordinators: [
+      { name: "G. Subramani", staff: true },
       { name: "Bhavya" },
       { name: "B. Lavanya" },
       { name: "V. Mohan Reddy", phone: "8309004894" },
@@ -324,8 +343,8 @@ const events: EventItem[] = [
       { name: "P. Sanjay Kumar", phone: "7386436900" },
       { name: "R. Spandana" },
       { name: "Bhargavi" },
-      { name: "Sravanth", phone: "7981946622" },
-    ],
+      { name: "Sravanth", phone: "7981946622" }
+  ],
     whatsapp: "https://chat.whatsapp.com/GQpaGQXEpSCDZDLZ8SmIwi",
   },
   {
@@ -342,15 +361,16 @@ const events: EventItem[] = [
       "Cheating or unfair assistance may result in disqualification.",
     ],
     coordinators: [
+      { name: "P.S. Devi", staff: true },
       { name: "K. Yaswanth", phone: "7013547235" },
       { name: "M.K. Pradeep", phone: "9550231085" },
-      { name: "S. Firdos" },
+      { name: "S. Firdos", phone: "6301861219" },
       { name: "Chandra Sekhar", phone: "9908967465" },
       { name: "M. Balaji", phone: "9866102190" },
       { name: "B. Rakshitha" },
       { name: "Rajashekar", phone: "8341493814" },
-      { name: "Soundarya" },
-    ],
+      { name: "Soundarya" }
+  ],
     whatsapp: "https://chat.whatsapp.com/Dc7NGw2WimP7EzVYUazrdF",
   },
   {
@@ -367,6 +387,7 @@ const events: EventItem[] = [
       "Creativity, storytelling and editing quality are evaluated.",
     ],
     coordinators: [
+      { name: "R. Selvarasan", staff: true },
       { name: "Bhavana" },
       { name: "Himabindu" },
       { name: "Vani" },
@@ -374,8 +395,8 @@ const events: EventItem[] = [
       { name: "K.R. Chiru", phone: "9059031225" },
       { name: "P. Asritha" },
       { name: "Aneesha" },
-      { name: "Sandeep", phone: "8639510076" },
-    ],
+      { name: "Sandeep", phone: "8639510076" }
+  ],
     whatsapp: "https://chat.whatsapp.com/Kah2b8e1t18IVW3dfOEGVo",
   },
   {
@@ -392,15 +413,16 @@ const events: EventItem[] = [
       "Entries must be completed and submitted within the specified time.",
     ],
     coordinators: [
+      { name: "R. Sudesh", staff: true },
       { name: "Shyam Sirram", phone: "9391310853" },
       { name: "Vishnu Vardhan", phone: "9177990045" },
-      { name: "Risitha Sree" },
-      { name: "Poojitha" },
+      { name: "Risitha Sree E" },
+      { name: "S.V Poojitha" },
       { name: "M. Sandhya" },
-      { name: "R. Mahesh Babu", phone: "7386997671" },
+      { name: "R. Mahesh Babu", phone: "7386997761" },
       { name: "Dharani" },
-      { name: "Shanvi" },
-    ],
+      { name: "Shanvi" }
+  ],
     whatsapp: "https://chat.whatsapp.com/GTQ8IHRq6sN15kkniOh4SC",
   },
   {
@@ -417,15 +439,16 @@ const events: EventItem[] = [
       "The quiz master's/judges' decision will be final.",
     ],
     coordinators: [
-      { name: "Navya" },
-      { name: "Shalini" },
-      { name: "Nandhini" },
-      { name: "Bhargavi" },
+      { name: "M. Ranjith Kumar", staff: true },
+      { name: "Navya", phone: "6301297810" },
+      { name: "Shalini", phone: "9908382478" },
+      { name: "Nandhini", phone: "9959447659" },
+      { name: "Bhargavi", phone: "9666866937" },
       { name: "P. Shiva Shankar", phone: "6305259202" },
       { name: "S. Bhagya Lakshmi" },
       { name: "Tejaswini" },
-      { name: "Madhu" },
-    ],
+      { name: "Madhu" }
+  ],
     whatsapp: "https://chat.whatsapp.com/CvpaACthmxeBgssNCPaunh",
   },
   {
@@ -442,15 +465,16 @@ const events: EventItem[] = [
       "Unfair assistance or rule violations may result in penalties or disqualification.",
     ],
     coordinators: [
+      { name: "M. Sumalatha", staff: true },
       { name: "T. Chandu" },
       { name: "B. Anjali" },
-      { name: "R. Vidya" },
-      { name: "Adharsha Reddy", phone: "9381141696" },
+      { name: "K. Hari Krishna", phone: "9390596679" },
+      { name: "Nanda Kumar", phone: "9182768763" },
       { name: "K. Charan", phone: "6305635058" },
       { name: "E.C. Manasa" },
       { name: "Sushmitha" },
-      { name: "Surya Kranthi", phone: "9014602740" },
-    ],
+      { name: "Surya Kranthi", phone: "9014602740" }
+  ],
     whatsapp: "https://chat.whatsapp.com/IWiCG0W0HE91Rw6GCbQLUp",
   },
 ];
@@ -469,22 +493,14 @@ const GENERAL_GUIDELINES: string[] = [
 
 const UPI_ID = ""; // kept for backwards compat; not used in Razorpay flow
 
+
 type Member = {
   name: string;
   phone: string;
   email: string;
-  /** Raw File for upload; set when the user picks a file */
   idCardFile: File | null;
-  /** Object-URL preview so the thumbnail still renders instantly */
   idCard: string;
   idCardName: string;
-};
-
-type EventPricing = {
-  fee_per_head: number;
-  fee_type: string;
-  min_members: number;
-  max_members: number;
 };
 
 function maxMembersOf(teamSize: string) {
@@ -500,7 +516,6 @@ function minMembersOf(teamSize: string) {
   if (!nums) return 1;
   return Math.min(...nums.map(Number));
 }
-
 function RegistrationForm({ event }: { event: EventItem }) {
   const maxMembers = maxMembersOf(event.teamSize);
   const minMembers = minMembersOf(event.teamSize);
@@ -515,12 +530,9 @@ function RegistrationForm({ event }: { event: EventItem }) {
   const [loading, setLoading] = useState(false);
   const [paymentStarted, setPaymentStarted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // Pricing fetched from Supabase
-  const [pricing, setPricing] = useState<EventPricing | null>(null);
-  // Track object-URLs so we can revoke them on unmount
+  const [pricing, setPricing] = useState<any>(null);
   const objectUrls = useRef<string[]>([]);
 
-  // Fetch live pricing for this event from Supabase
   useEffect(() => {
     supabase
       .from("events")
@@ -530,11 +542,10 @@ function RegistrationForm({ event }: { event: EventItem }) {
       .limit(1)
       .single()
       .then(({ data }) => {
-        if (data) setPricing(data as EventPricing);
+        if (data) setPricing(data);
       });
   }, [event.name]);
 
-  // Live amount calculation
   const totalAmount = (() => {
     if (!pricing) return null;
     const feeType = String(pricing.fee_type ?? "per_head").trim().toLowerCase();
@@ -566,13 +577,18 @@ function RegistrationForm({ event }: { event: EventItem }) {
 
   const uploadIdCardLocal = (i: number, file?: File) => {
     if (!file) return;
-    const previewUrl = URL.createObjectURL(file);
-    objectUrls.current.push(previewUrl);
+    if (file.size > 50 * 1024) {
+      setSubmitError(
+        `File size must be below 50 KB. Selected file "${file.name}" is ${(file.size / 1024).toFixed(1)} KB. Please choose a smaller image.`,
+      );
+      return;
+    }
+    setSubmitError(null);
+    const objectUrl = URL.createObjectURL(file);
+    objectUrls.current.push(objectUrl);
     setMembers((prev) =>
       prev.map((m, idx) =>
-        idx === i
-          ? { ...m, idCardFile: file, idCard: previewUrl, idCardName: file.name }
-          : m,
+        idx === i ? { ...m, idCardFile: file, idCard: objectUrl, idCardName: file.name } : m,
       ),
     );
   };
@@ -582,6 +598,11 @@ function RegistrationForm({ event }: { event: EventItem }) {
     setMembers((prev) => prev.filter((_, idx) => idx !== i));
   };
 
+  useEffect(() => {
+    return () => {
+      objectUrls.current.forEach(URL.revokeObjectURL);
+    };
+  }, []);
 
   if (submitted) {
     return (
@@ -604,17 +625,21 @@ function RegistrationForm({ event }: { event: EventItem }) {
           </p>
         </div>
         <p className="mt-3 text-xs text-slate-400">
-          Your registration is confirmed and payment has been processed.
+          Payment: To be collected at the event.
         </p>
+        {totalAmount != null && (
+          <p className="mt-1 text-sm font-semibold text-amber-600">
+            Amount to pay at event: ₹{totalAmount}
+          </p>
+        )}
 
-        {/* Join the event WhatsApp group */}
         <div className="mt-6 w-full max-w-sm rounded-2xl border border-emerald-500/25 bg-emerald-50 p-5">
           <p className="font-display text-sm font-semibold text-emerald-800">
             Important — Join the WhatsApp Group
           </p>
           <p className="mt-1 text-xs text-emerald-700">
             All updates for <strong>{event.name}</strong> will be shared here.
-            Join now so you don&apos;t miss any announcement.
+            Join now so you don't miss any announcement.
           </p>
           <a
             href={event.whatsapp}
@@ -631,7 +656,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-[var(--color-electric)]/20 bg-white px-3 py-2 text-sm text-[var(--color-ink)] outline-none transition-colors focus:border-[var(--color-electric)] focus:ring-2 focus:ring-[var(--color-electric)]/20";
+    "w-full rounded-lg border border-[var(--color-electric)]/20 bg-white px-3 py-2 text-sm text-[var(--color-ink)] outline-none transition-colors focus:border-[var(--color-electric)] focus:ring-2 focus:ring-[var(--color-electric)]/20 disabled:opacity-60 disabled:cursor-not-allowed";
   const labelClass =
     "mb-1 block font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)]";
 
@@ -640,52 +665,68 @@ function RegistrationForm({ event }: { event: EventItem }) {
       onSubmit={async (e) => {
         e.preventDefault();
         setSubmitError(null);
+        if (members.length < effectiveMin) {
+          setSubmitError(`At least ${effectiveMin} member(s) required for this event.`);
+          return;
+        }
+        if (!pricing) {
+          setSubmitError("Event pricing not loaded. Please wait.");
+          return;
+        }
+        for (let idx = 0; idx < members.length; idx++) {
+          const m = members[idx];
+          if (m.idCardFile && m.idCardFile.size > 50 * 1024) {
+            setSubmitError(`ID card for Member ${idx + 1} exceeds 50 KB. Please upload an image below 50 KB.`);
+            return;
+          }
+        }
         setLoading(true);
-        await payAndRegister(
-          {
+        setSubmitError(null);
+
+        try {
+          const res = await registerDirectly({
             event: event.name,
             teamName,
             college: collegeName,
             members,
-          },
-          {
-            onPaymentStarted: () => {
-              setPaymentStarted(true);
-            },
-            onPaymentCancelled: () => {
-              setLoading(false);
-              setPaymentStarted(false);
-              setSubmitError("Payment was cancelled. You can try again.");
-            },
-            onSuccess: (regNumber) => {
-              objectUrls.current.forEach((u) => URL.revokeObjectURL(u));
-              setRegId(regNumber);
-              setSubmitted(true);
-              setLoading(false);
-            },
-            onError: (message) => {
-              setSubmitError(message);
-              setLoading(false);
-              setPaymentStarted(false);
-            },
-          },
-        );
+            totalAmount: totalAmount as number,
+          });
+          setLoading(false);
+          setRegId(res.registration_number);
+          setSubmitted(true);
+        } catch (err: any) {
+          setLoading(false);
+          setSubmitError(err.message || "An unexpected error occurred.");
+          console.error("Registration failed:", err);
+        }
       }}
       className="space-y-7"
     >
-      {/* Coordinators */}
       <div className="rounded-xl border border-[var(--color-electric)]/15 bg-[var(--color-paper)] p-4">
         <p className={labelClass}>Event Coordinators</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           {event.coordinators.map((c) => (
             <div
               key={c.name}
-              className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm"
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                (c as any).staff
+                  ? "bg-[var(--color-electric)]/8 ring-1 ring-[var(--color-electric)]/20"
+                  : "bg-white"
+              }`}
             >
-              <Phone className="size-4 shrink-0 text-[var(--color-flame)]" />
+              {(c as any).staff ? (
+                <GraduationCap className="size-4 shrink-0 text-[var(--color-electric)]" />
+              ) : (
+                <Phone className="size-4 shrink-0 text-[var(--color-flame)]" />
+              )}
               <span className="font-medium text-[var(--color-ink)]">
                 {c.name}
               </span>
+              {(c as any).staff && (
+                <span className="rounded-full bg-[var(--color-electric)]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-electric)]">
+                  Staff
+                </span>
+              )}
               {c.phone && (
                 <a
                   href={`tel:${c.phone.replace(/\s/g, "")}`}
@@ -699,7 +740,6 @@ function RegistrationForm({ event }: { event: EventItem }) {
         </div>
       </div>
 
-      {/* Team & college */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="teamName">
@@ -708,6 +748,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
           <input
             id="teamName"
             required
+            disabled={loading}
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
             placeholder="e.g. Circuit Breakers"
@@ -721,6 +762,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
           <input
             id="collegeName"
             required
+            disabled={loading}
             value={collegeName}
             onChange={(e) => setCollegeName(e.target.value)}
             placeholder="e.g. Kuppam Engineering College"
@@ -729,7 +771,6 @@ function RegistrationForm({ event }: { event: EventItem }) {
         </div>
       </div>
 
-      {/* Members */}
       <div>
         <div className="mb-2 flex items-center justify-between">
           <span className={labelClass + " mb-0"}>
@@ -741,7 +782,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
           <button
             type="button"
             onClick={addMember}
-            disabled={members.length >= effectiveMax}
+            disabled={members.length >= effectiveMax || loading}
             className="inline-flex items-center gap-1 rounded-full bg-[var(--color-electric)]/10 px-3 py-1 font-display text-xs font-semibold uppercase tracking-wide text-[var(--color-electric)] transition-colors hover:bg-[var(--color-electric)]/20 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Plus className="size-3.5" /> Add Member
@@ -766,7 +807,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
                 <button
                   type="button"
                   onClick={() => removeMember(i)}
-                  disabled={members.length === 1}
+                  disabled={members.length === 1 || loading}
                   aria-label="Remove member"
                   className="inline-flex items-center justify-center rounded-lg p-1 text-slate-400 transition-colors hover:text-[var(--color-flame)] disabled:cursor-not-allowed disabled:opacity-30"
                 >
@@ -776,6 +817,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
               <div className="grid gap-2 sm:grid-cols-3">
                 <input
                   required
+                  disabled={loading}
                   value={m.name}
                   onChange={(e) => updateMember(i, "name", e.target.value)}
                   placeholder="Full name"
@@ -784,6 +826,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
                 <input
                   required
                   type="tel"
+                  disabled={loading}
                   value={m.phone}
                   onChange={(e) => updateMember(i, "phone", e.target.value)}
                   placeholder="Contact number"
@@ -792,13 +835,13 @@ function RegistrationForm({ event }: { event: EventItem }) {
                 <input
                   required
                   type="email"
+                  disabled={loading}
                   value={m.email}
                   onChange={(e) => updateMember(i, "email", e.target.value)}
                   placeholder="Email ID"
                   className={inputClass}
                 />
               </div>
-              {/* ID card proof upload */}
               <div className="mt-2 flex items-center gap-3">
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-[var(--color-electric)]/40 bg-[var(--color-paper)] px-3 py-2 text-xs font-semibold text-[var(--color-electric)] transition-colors hover:bg-[var(--color-electric)]/10">
                   <Upload className="size-4" />
@@ -807,6 +850,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
                     type="file"
                     accept="image/*"
                     required={!m.idCard}
+                    disabled={loading}
                     onChange={(e) => uploadIdCardLocal(i, e.target.files?.[0])}
                     className="hidden"
                   />
@@ -828,12 +872,15 @@ function RegistrationForm({ event }: { event: EventItem }) {
                   </span>
                 )}
               </div>
+              <p className="mt-1 text-[11px] text-slate-400">
+                File size must be <span className="font-semibold text-slate-500">below 50 KB</span> (JPG / PNG)
+              </p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Total Amount Summary — replaces QR/UTR section */}
+      {/* Total Amount Summary */}
       <div className="rounded-xl border border-[var(--color-electric)]/15 bg-[var(--color-paper)] p-5">
         <p className={labelClass}>Total Payment</p>
         <div className="mt-2 flex items-center gap-3">
@@ -845,7 +892,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
               {totalAmount !== null ? (
                 <>&#8377;{totalAmount}</>  
               ) : (
-                <span className="text-xl text-slate-400">Loading…</span>
+                <span className="text-xl text-slate-400">Loading...</span>
               )}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
@@ -853,12 +900,12 @@ function RegistrationForm({ event }: { event: EventItem }) {
                 ? String(pricing.fee_type ?? "per_head").trim().toLowerCase() === "per_team"
                   ? `Fixed team fee (₹${pricing.fee_per_head})`
                   : `₹${pricing.fee_per_head} × ${members.length} member${members.length !== 1 ? "s" : ""}`
-                : "Fetching pricing from database…"}
+                : "Fetching pricing from database..."}
             </p>
           </div>
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          Secure payment via Razorpay. Supports UPI, Cards, Net Banking &amp; Wallets.
+          Payment will be collected at the event
         </p>
       </div>
 
@@ -877,12 +924,12 @@ function RegistrationForm({ event }: { event: EventItem }) {
         {loading ? (
           <>
             <Loader2 className="size-4 animate-spin" />
-            {paymentStarted ? "Verifying Payment…" : "Opening Payment…"}
+            Booking Slot...
           </>
         ) : (
           <>
-            <IndianRupee className="size-4" />
-            Pay &#8377;{totalAmount ?? "…"} &amp; Register
+            <Ticket className="size-4" />
+            Book Slot
           </>
         )}
       </button>

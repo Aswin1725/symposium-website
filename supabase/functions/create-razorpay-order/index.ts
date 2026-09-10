@@ -1,4 +1,4 @@
-﻿// Supabase Edge Function — create-razorpay-order
+// Supabase Edge Function — create-razorpay-order
 // Runs on Deno / Supabase Edge Runtime (never in the browser).
 // The Razorpay Key SECRET is read from environment, never sent to the client.
 
@@ -26,9 +26,12 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const apikey = req.headers.get("apikey") || "";
+    const authHeader = req.headers.get("Authorization") || `Bearer ${apikey}`;
+    const supabase = createClient(supabaseUrl, apikey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     const { data: eventRow, error: eventErr } = await supabase
       .from("events")
@@ -38,7 +41,15 @@ Deno.serve(async (req: Request) => {
       .limit(1)
       .single();
 
-    if (eventErr || !eventRow) {
+    if (eventErr) {
+      console.error("Database query failed:", eventErr);
+      return new Response(
+        JSON.stringify({ error: `Internal database error during event lookup: ${eventErr.message || JSON.stringify(eventErr)}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!eventRow) {
       return new Response(
         JSON.stringify({ error: `Event "${event_name}" not found or inactive.` }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },

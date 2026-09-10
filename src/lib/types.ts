@@ -93,4 +93,6 @@ export type Registration = {
   amount: number;
   status: RegStatus;            // mapped from registration_status
   createdAt: string;
+  paymentStatus?: string;       // "PENDING" | "VERIFIED"
+  paymentMethod?: string;       // "CASH" | "ONLINE" | "NOT COLLECTED"
 };

@@ -1,4 +1,4 @@
-﻿// Supabase Edge Function — verify-razorpay-payment
+// Supabase Edge Function — verify-razorpay-payment
 // 1. Verifies Razorpay HMAC-SHA256 signature (server-side only)
 // 2. Inserts registration, members, and payment into Supabase
 // 3. Returns the registration number
@@ -97,9 +97,12 @@ Deno.serve(async (req: Request) => {
     // -------------------------------------------------------------------------
     // Signature verified — now look up event and recalculate amount
     // -------------------------------------------------------------------------
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const apikey = req.headers.get("apikey") || "";
+    const authHeader = req.headers.get("Authorization") || `Bearer ${apikey}`;
+    const supabase = createClient(supabaseUrl, apikey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     const { event_name, team_name, college_name, members } = registration_data;
     const memberCount = Array.isArray(members) ? members.length : 0;
@@ -111,7 +114,15 @@ Deno.serve(async (req: Request) => {
       .limit(1)
       .single();
 
-    if (eventErr || !eventRow) {
+    if (eventErr) {
+      console.error("Database query failed:", eventErr);
+      return new Response(
+        JSON.stringify({ success: false, error: "Internal database error during event lookup." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!eventRow) {
       return new Response(
         JSON.stringify({ success: false, error: `Event "${event_name}" not found.` }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -152,15 +163,15 @@ Deno.serve(async (req: Request) => {
     const regId = regRow.id;
 
     // -------------------------------------------------------------------------
-    // Insert members (id_card_path = null; client uploads files separately)
+    // Insert members (id_card_path = uploaded before edge function is called)
     // -------------------------------------------------------------------------
-    const memberInserts = members.map((m: { name: string; phone: string; email: string }, idx: number) => ({
+    const memberInserts = members.map((m: { name: string; phone: string; email: string; id_card_path?: string | null }, idx: number) => ({
       registration_id: regId,
       member_number: idx + 1,
       full_name: m.name,
       phone: m.phone,
       email: m.email,
-      id_card_path: null,
+      id_card_path: m.id_card_path || null,
     }));
 
     const { error: memberErr } = await supabase.from("members").insert(memberInserts);

@@ -9,7 +9,44 @@ import {
   X,
   Megaphone,
 } from "lucide-react";
+import collegeHeader from "@/imports/ChatGPT_Image_Sep_7__2026__03_33_52_PM-1.png";
+import ieeeHyderabad from "@/imports/123342.png";
+import ieeeCas from "@/imports/ChatGPT_Image_Sep_9__2026__11_23_15_AM.png";
+import ieeeBts from "@/imports/ChatGPT_Image_Sep_9__2026__11_25_06_AM.png";
+import ieeeEds from "@/imports/ChatGPT_Image_Sep_9__2026__11_26_31_AM.png";
+import ieeeComsoc from "@/imports/ChatGPT_Image_Sep_9__2026__11_27_34_AM.png";
+import ieeeAnanthapuramu from "@/imports/ChatGPT_Image_Sep_9__2026__11_29_03_AM.png";
 import type { View } from "@/App";
+
+const organizerText =
+  "Dept of ECE & IEEE Student Branch (BTS, CAS, EDS, ComSoc) jointly organized Symposium";
+
+const organizerLogos: { src: string; alt: string }[] = [
+  { src: ieeeBts, alt: "IEEE Broadcast Technology Society" },
+  { src: ieeeCas, alt: "IEEE Circuits and Systems Society" },
+  { src: ieeeEds, alt: "IEEE Electron Devices Society" },
+  { src: ieeeComsoc, alt: "IEEE Communications Society" },
+  { src: ieeeHyderabad, alt: "IEEE Hyderabad Section" },
+  { src: ieeeAnanthapuramu, alt: "IEEE Ananthapuramu Sub-Section" },
+];
+
+function OrganizerContent() {
+  return (
+    <div className="flex shrink-0 items-center gap-8 pr-8" aria-hidden="true">
+      <span className="font-display text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink)] sm:text-xs">
+        {organizerText}
+      </span>
+      {organizerLogos.map((logo, i) => (
+        <img
+          key={i}
+          src={logo.src}
+          alt={logo.alt}
+          className="h-8 w-auto object-contain sm:h-9"
+        />
+      ))}
+    </div>
+  );
+}
 
 const links: { label: string; view: View; icon: typeof Home }[] = [
   { label: "Home", view: "home", icon: Home },
@@ -54,7 +91,7 @@ export function TopBar({
       {/* College header image — full width (edges clipped to hide the image's dark frame) */}
       <div className="flex w-full items-center overflow-hidden px-3 py-2">
         <img
-          src="/college-header.png"
+          src={collegeHeader}
           alt="Kuppam Engineering College (UGC - Autonomous)"
           className="h-auto w-full scale-[1.04] object-contain"
         />
@@ -140,6 +177,22 @@ export function TopBar({
           >
             <TickerContent />
             <TickerContent />
+          </div>
+        </div>
+      </div>
+
+      {/* Organizer scrolling bar */}
+      <div className="flex items-stretch overflow-hidden border-t border-[var(--color-electric)]/15 bg-white">
+        <span className="z-10 hidden shrink-0 items-center bg-[var(--color-electric)] px-3 font-display text-[11px] font-bold uppercase tracking-widest text-white sm:flex">
+          Collaborated With
+        </span>
+        <div className="relative flex-1 overflow-hidden py-2">
+          <div
+            className="flex w-max whitespace-nowrap"
+            style={{ animation: "nextron-marquee 30s linear infinite" }}
+          >
+            <OrganizerContent />
+            <OrganizerContent />
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 const teaching = [
   { name: "Dr. G. N. Kodanda Ramaiah", role: "Professor & HOD" },
-  { name: "Dr. K. Rasadurai", role: "Vice-HOD, Professor" },
+  { name: "Dr. K. Rasadurai", role: "Professor" },
   { name: "Dr. D. Jaya Kumar", role: "Professor" },
   { name: "Dr. P. Ajay Kumar Reddy", role: "Associate Professor" },
   { name: "Dr. Santhosh B. Panjagal", role: "Associate Professor" },
