@@ -931,9 +931,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
       {/* UPI Payment Section */}
       {(() => {
         const payConfig = getEventPayment(event.name);
-        const isReelsMaking = event.name === "Reels Making";
-        // Reels Making: fully unconfigured
-        if (isReelsMaking || (payConfig.upiId === null && payConfig.qrImage === null)) {
+        if (payConfig.upiId === null && payConfig.qrImage === null) {
           return (
             <div className="rounded-xl border border-amber-300/60 bg-amber-50 p-5">
               <p className="font-display text-xs font-semibold uppercase tracking-widest text-amber-700">

@@ -85,10 +85,10 @@ export const EVENT_PAYMENT_DATA: Record<string, EventPaymentConfig> = {
     upiId: "9390596679@ptsbi",
     qrImage: "/qr/actguess.png",
   },
-  // Reels Making: no UPI ID or QR provided — fully unconfigured.
+  // Reels Making:
   "Reels Making": {
-    upiId: null,
-    qrImage: null,
+    upiId: "6304958303@ybl",
+    qrImage: "/qr/reels.png",
   },
 };
 
