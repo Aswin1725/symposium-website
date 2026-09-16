@@ -1150,73 +1150,44 @@ function RegistrationForm({ event }: { event: EventItem }) {
 
             {/* PAYMENT PROOF Section */}
             <div>
-              <label className="mb-2 block font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)]">
+              <label className="mb-1 block font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)]">
                 Payment Proof <span className="text-red-500 font-bold">*</span>
               </label>
 
-              {!paymentProofPreview ? (
-                <div className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/25 px-4 py-8 text-center transition-all hover:border-blue-300 hover:bg-blue-50/40">
-                  <div className="mb-2 flex size-12 items-center justify-center rounded-full text-blue-600">
-                    <CloudUpload className="size-10 stroke-[1.5]" />
-                  </div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    Upload Screenshot of Successful Payment{" "}
-                    <span className="font-bold text-blue-600">(Max 50 KB)</span>
-                  </p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Allowed formats: JPG, JPEG, PNG, WEBP
-                  </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-[var(--color-electric)]/40 bg-[var(--color-paper)] px-3 py-2 text-xs font-semibold text-[var(--color-electric)] transition-colors hover:bg-[var(--color-electric)]/10">
+                  {compressingProof ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Upload className="size-4" />
+                  )}
+                  {compressingProof
+                    ? "Optimizing..."
+                    : paymentProofFile
+                      ? "Change Payment Proof"
+                      : "Upload Payment Proof"}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    disabled={loading || compressingProof}
+                    onChange={(e) => handlePaymentProofSelect(e.target.files?.[0])}
+                    className="hidden"
+                  />
+                </label>
 
-                  <label className="mt-4 inline-flex cursor-pointer items-center justify-center rounded-lg border border-blue-200 bg-blue-50/60 px-6 py-2 text-xs font-semibold text-blue-700 shadow-sm transition-all hover:bg-blue-100 hover:border-blue-300 active:scale-95">
-                    {compressingProof ? (
-                      <>
-                        <Loader2 className="mr-2 size-3.5 animate-spin" />
-                        Optimizing...
-                      </>
-                    ) : (
-                      "Choose Image"
-                    )}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/jpg"
-                      disabled={loading || compressingProof}
-                      onChange={(e) => handlePaymentProofSelect(e.target.files?.[0])}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-200/80 bg-white p-3.5 shadow-sm">
-                  <div className="flex items-center gap-3 min-w-0">
+                {paymentProofFile ? (
+                  <div className="flex items-center gap-2">
                     <img
-                      src={paymentProofPreview}
-                      alt="Payment Proof Preview"
-                      className="size-14 rounded-lg border border-slate-200 object-cover shrink-0"
+                      src={paymentProofPreview!}
+                      alt="Payment proof preview"
+                      className="size-11 rounded-md border border-[var(--color-electric)]/20 object-cover"
                     />
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-slate-800">
-                        {paymentProofName}
-                      </p>
-                      <div className="mt-1 flex items-center gap-2">
-                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                          ✓ {paymentProofSize}
-                        </span>
-                        <span className="text-[10px] text-slate-400">Ready to upload</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <label className="cursor-pointer rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
-                      Change
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/jpg"
-                        disabled={loading || compressingProof}
-                        onChange={(e) => handlePaymentProofSelect(e.target.files?.[0])}
-                        className="hidden"
-                      />
-                    </label>
+                    <span className="max-w-[9rem] truncate text-xs text-slate-600 font-medium">
+                      {paymentProofName}
+                    </span>
+                    <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">
+                      ✓ {paymentProofSize}
+                    </span>
                     <button
                       type="button"
                       onClick={() => {
@@ -1225,28 +1196,22 @@ function RegistrationForm({ event }: { event: EventItem }) {
                         setPaymentProofName("");
                         setPaymentProofSize("");
                       }}
-                      className="rounded-lg p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      className="rounded p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                       title="Remove image"
                     >
-                      <Trash2 className="size-4" />
+                      <Trash2 className="size-3.5" />
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* Note callout box matching reference */}
-              <div className="mt-3 flex gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-4">
-                <Info className="size-5 shrink-0 text-blue-600 mt-0.5" />
-                <div className="text-xs text-blue-950">
-                  <p className="font-bold">Note:</p>
-                  <ol className="mt-1 list-decimal list-inside space-y-0.5 text-[11px] text-blue-900/90 leading-relaxed">
-                    <li>Upload a clear screenshot of the successful UPI payment.</li>
-                    <li>File size must be 50 KB or smaller.</li>
-                    <li>Allowed formats: JPG, JPEG, PNG, WEBP.</li>
-                    <li>Make sure the amount and UPI details are visible in the screenshot.</li>
-                  </ol>
-                </div>
+                ) : (
+                  <span className="text-xs text-slate-400">
+                    Payment screenshot required
+                  </span>
+                )}
               </div>
+
+              <p className="mt-1 text-[11px] text-slate-400">
+                File size must be <span className="font-semibold text-slate-500">below 50 KB</span> (JPG / PNG / WEBP screenshot with amount &amp; UPI visible)
+              </p>
             </div>
           </div>
         );
