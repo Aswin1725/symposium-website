@@ -119,6 +119,8 @@ export async function registerDirectly(payload: {
   college: string;
   members: { name: string; phone: string; email: string; idCardFile: File | null }[];
   totalAmount: number;
+  /** UTR / transaction number entered by the participant after UPI payment */
+  utrNumber: string;
 }): Promise<{ registration_number: string }> {
   // 1. Generate unique registration number
   const regNum = "NEX-" + Math.floor(Math.random() * 900000 + 100000);
@@ -171,13 +173,13 @@ export async function registerDirectly(payload: {
   const { error: memErr } = await supabase.from("members").insert(memberInserts);
   if (memErr) throw new Error("Failed to save members: " + memErr.message);
 
-  // 6. Insert payment as PENDING and NOT COLLECTED
+  // 6. Insert payment as PENDING with the UPI UTR entered by the participant
   const { error: payErr } = await supabase.from("payments").insert({
     registration_id: regId,
     amount: payload.totalAmount,
     payment_status: "PENDING",
-    remarks: "NOT COLLECTED",
-    utr_number: "PAY_AT_EVENT",
+    remarks: "UPI",
+    utr_number: payload.utrNumber,
   });
   if (payErr) throw new Error("Failed to save payment status: " + payErr.message);
 

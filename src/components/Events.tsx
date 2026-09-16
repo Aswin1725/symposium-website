@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { registerDirectly } from "@/lib/registrations";
+import { getEventPayment } from "@/lib/eventPaymentData";
 import { supabase } from "@/lib/supabase";
 import {
   X,
@@ -491,7 +492,7 @@ const GENERAL_GUIDELINES: string[] = [
   "Every event has a prize pool.",
 ];
 
-const UPI_ID = ""; // kept for backwards compat; not used in Razorpay flow
+const _UPI_ID_UNUSED = ""; // kept for backwards compat; not used in Razorpay flow
 
 
 type Member = {
@@ -525,12 +526,15 @@ function RegistrationForm({ event }: { event: EventItem }) {
     { name: "", phone: "", email: "", idCardFile: null, idCard: "", idCardName: "" },
   ]);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedUtr, setSubmittedUtr] = useState("");
   const [regId, setRegId] = useState("");
   const [limitMsg, setLimitMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [paymentStarted, setPaymentStarted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pricing, setPricing] = useState<any>(null);
+  const [utrNumber, setUtrNumber] = useState("");
+  const [upiCopied, setUpiCopied] = useState(false);
   const objectUrls = useRef<string[]>([]);
 
   useEffect(() => {
@@ -618,20 +622,30 @@ function RegistrationForm({ event }: { event: EventItem }) {
         </p>
         <div className="mt-5 rounded-xl border border-dashed border-[var(--color-electric)]/40 bg-[var(--color-paper)] px-8 py-4">
           <p className="font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)]">
-            Your Registration Number
+            Registration Number
           </p>
           <p className="mt-1 font-mono text-2xl font-bold tracking-wider text-[var(--color-electric)]">
             {regId}
           </p>
         </div>
-        <p className="mt-3 text-xs text-slate-400">
-          Payment: To be collected at the event.
-        </p>
-        {totalAmount != null && (
-          <p className="mt-1 text-sm font-semibold text-amber-600">
-            Amount to pay at event: ₹{totalAmount}
-          </p>
-        )}
+
+        {/* Payment summary on success */}
+        <div className="mt-4 w-full max-w-sm rounded-xl border border-[var(--color-electric)]/15 bg-[var(--color-paper)] px-6 py-4 text-left">
+          <div className="flex justify-between text-sm">
+            <span className="text-slate-500">Payment</span>
+            <span className="font-semibold text-amber-600">Submitted — Pending verification</span>
+          </div>
+          {totalAmount != null && (
+            <div className="mt-2 flex justify-between text-sm">
+              <span className="text-slate-500">Amount Paid</span>
+              <span className="font-semibold text-[var(--color-ink)]">₹{totalAmount}</span>
+            </div>
+          )}
+          <div className="mt-2 flex justify-between text-sm">
+            <span className="text-slate-500">UTR / Transaction No.</span>
+            <span className="font-mono font-semibold text-[var(--color-ink)] break-all text-right max-w-[10rem]">{submittedUtr}</span>
+          </div>
+        </div>
 
         <div className="mt-6 w-full max-w-sm rounded-2xl border border-emerald-500/25 bg-emerald-50 p-5">
           <p className="font-display text-sm font-semibold text-emerald-800">
@@ -639,7 +653,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
           </p>
           <p className="mt-1 text-xs text-emerald-700">
             All updates for <strong>{event.name}</strong> will be shared here.
-            Join now so you don't miss any announcement.
+            Join now so you don&apos;t miss any announcement.
           </p>
           <a
             href={event.whatsapp}
@@ -680,6 +694,12 @@ function RegistrationForm({ event }: { event: EventItem }) {
             return;
           }
         }
+        // Validate UTR
+        const trimmedUtr = utrNumber.trim();
+        if (!trimmedUtr) {
+          setSubmitError("Please enter your UTR / Transaction Number before submitting.");
+          return;
+        }
         setLoading(true);
         setSubmitError(null);
 
@@ -690,9 +710,11 @@ function RegistrationForm({ event }: { event: EventItem }) {
             college: collegeName,
             members,
             totalAmount: totalAmount as number,
+            utrNumber: trimmedUtr,
           });
           setLoading(false);
           setRegId(res.registration_number);
+          setSubmittedUtr(trimmedUtr);
           setSubmitted(true);
         } catch (err: any) {
           setLoading(false);
@@ -880,6 +902,120 @@ function RegistrationForm({ event }: { event: EventItem }) {
         </div>
       </div>
 
+      {/* UPI Payment Section */}
+      {(() => {
+        const payConfig = getEventPayment(event.name);
+        const isReelsMaking = event.name === "Reels Making";
+        // Reels Making: fully unconfigured
+        if (isReelsMaking || (payConfig.upiId === null && payConfig.qrImage === null)) {
+          return (
+            <div className="rounded-xl border border-amber-300/60 bg-amber-50 p-5">
+              <p className="font-display text-xs font-semibold uppercase tracking-widest text-amber-700">
+                Payment
+              </p>
+              <p className="mt-2 text-sm font-medium text-amber-800">
+                Payment configuration not yet available — contact coordinators.
+              </p>
+            </div>
+          );
+        }
+
+        const feeType = pricing
+          ? String(pricing.fee_type ?? "per_head").trim().toLowerCase()
+          : "per_head";
+        const isTeamFee = feeType === "per_team";
+        const scanLabel = totalAmount !== null
+          ? isTeamFee
+            ? `SCAN & PAY ₹${totalAmount} fixed team fee`
+            : `SCAN & PAY ₹${pricing?.fee_per_head ?? "—"} / head`
+          : "Loading amount…";
+
+        return (
+          <div className="rounded-xl border border-[var(--color-electric)]/15 bg-[var(--color-paper)] p-5 space-y-4">
+            <p className="font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)]">
+              Payment — UPI
+            </p>
+
+            {/* QR code area */}
+            <div className="flex flex-col items-center gap-3">
+              {payConfig.qrImage ? (
+                <img
+                  src={payConfig.qrImage}
+                  alt={`UPI QR code for ${event.name}`}
+                  className="h-52 w-52 rounded-xl border border-[var(--color-electric)]/20 object-contain bg-white p-1 shadow-sm"
+                />
+              ) : (
+                <div className="flex h-52 w-52 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--color-electric)]/30 bg-white text-center px-4">
+                  <IndianRupee className="size-8 text-[var(--color-electric)]/40 mb-2" />
+                  <p className="text-xs font-semibold text-slate-400">QR code not configured yet</p>
+                  <p className="mt-1 text-[11px] text-slate-400">Use the UPI ID below to pay</p>
+                </div>
+              )}
+
+              {/* UPI ID row */}
+              <div className="w-full">
+                <p className="font-display text-[10px] font-semibold uppercase tracking-widest text-[var(--color-ink-soft)] mb-1">
+                  UPI ID
+                </p>
+                <div className="flex items-center gap-2 rounded-lg border border-[var(--color-electric)]/20 bg-white px-3 py-2">
+                  <span className="flex-1 font-mono text-sm font-semibold text-[var(--color-ink)] select-all">
+                    {payConfig.upiId}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (payConfig.upiId) {
+                        navigator.clipboard.writeText(payConfig.upiId).then(() => {
+                          setUpiCopied(true);
+                          setTimeout(() => setUpiCopied(false), 2000);
+                        });
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md bg-[var(--color-electric)]/10 px-2.5 py-1.5 font-display text-[10px] font-semibold uppercase tracking-wide text-[var(--color-electric)] transition-colors hover:bg-[var(--color-electric)]/20"
+                    aria-label="Copy UPI ID"
+                  >
+                    {upiCopied ? (
+                      <><Check className="size-3" /> Copied</>
+                    ) : (
+                      <><Copy className="size-3" /> Copy</>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Scan instruction */}
+              <p className="text-center font-display text-sm font-bold uppercase tracking-wide text-[var(--color-electric)]">
+                {scanLabel}
+              </p>
+              <p className="text-center text-[11px] text-slate-500 leading-relaxed">
+                Scan the QR with PhonePe / Google Pay / any UPI app,<br />
+                complete the payment, and enter the transaction reference below.
+              </p>
+            </div>
+
+            {/* UTR input */}
+            <div>
+              <label
+                htmlFor="utrNumber"
+                className="mb-1 block font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)]"
+              >
+                UTR / Transaction Number
+              </label>
+              <input
+                id="utrNumber"
+                type="text"
+                required
+                disabled={loading}
+                value={utrNumber}
+                onChange={(e) => setUtrNumber(e.target.value)}
+                placeholder="Enter your UTR / transaction reference"
+                className="w-full rounded-lg border border-[var(--color-electric)]/20 bg-white px-3 py-2 text-sm font-mono text-[var(--color-ink)] outline-none transition-colors focus:border-[var(--color-electric)] focus:ring-2 focus:ring-[var(--color-electric)]/20 disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Total Amount Summary */}
       <div className="rounded-xl border border-[var(--color-electric)]/15 bg-[var(--color-paper)] p-5">
         <p className={labelClass}>Total Payment</p>
@@ -904,9 +1040,6 @@ function RegistrationForm({ event }: { event: EventItem }) {
             </p>
           </div>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
-          Payment will be collected at the event
-        </p>
       </div>
 
       {submitError && (
