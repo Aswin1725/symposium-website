@@ -902,6 +902,32 @@ function RegistrationForm({ event }: { event: EventItem }) {
         </div>
       </div>
 
+      {/* Total Amount Summary */}
+      <div className="rounded-xl border border-[var(--color-electric)]/15 bg-[var(--color-paper)] p-5">
+        <p className={labelClass}>Total Payment</p>
+        <div className="mt-2 flex items-center gap-3">
+          <div className="flex items-center justify-center rounded-xl bg-[var(--color-electric)]/10 p-3">
+            <IndianRupee className="size-7 text-[var(--color-electric)]" />
+          </div>
+          <div>
+            <p className="font-display text-3xl font-bold tracking-tight text-[var(--color-ink)]">
+              {totalAmount !== null ? (
+                <>&#8377;{totalAmount}</>  
+              ) : (
+                <span className="text-xl text-slate-400">Loading...</span>
+              )}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {pricing
+                ? String(pricing.fee_type ?? "per_head").trim().toLowerCase() === "per_team"
+                  ? `Fixed team fee (₹${pricing.fee_per_head})`
+                  : `₹${pricing.fee_per_head} × ${members.length} member${members.length !== 1 ? "s" : ""}`
+                : "Fetching pricing from database..."}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* UPI Payment Section */}
       {(() => {
         const payConfig = getEventPayment(event.name);
@@ -1015,32 +1041,6 @@ function RegistrationForm({ event }: { event: EventItem }) {
           </div>
         );
       })()}
-
-      {/* Total Amount Summary */}
-      <div className="rounded-xl border border-[var(--color-electric)]/15 bg-[var(--color-paper)] p-5">
-        <p className={labelClass}>Total Payment</p>
-        <div className="mt-2 flex items-center gap-3">
-          <div className="flex items-center justify-center rounded-xl bg-[var(--color-electric)]/10 p-3">
-            <IndianRupee className="size-7 text-[var(--color-electric)]" />
-          </div>
-          <div>
-            <p className="font-display text-3xl font-bold tracking-tight text-[var(--color-ink)]">
-              {totalAmount !== null ? (
-                <>&#8377;{totalAmount}</>  
-              ) : (
-                <span className="text-xl text-slate-400">Loading...</span>
-              )}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-500">
-              {pricing
-                ? String(pricing.fee_type ?? "per_head").trim().toLowerCase() === "per_team"
-                  ? `Fixed team fee (₹${pricing.fee_per_head})`
-                  : `₹${pricing.fee_per_head} × ${members.length} member${members.length !== 1 ? "s" : ""}`
-                : "Fetching pricing from database..."}
-            </p>
-          </div>
-        </div>
-      </div>
 
       {submitError && (
         <div className="flex items-center gap-2 rounded-lg border border-[var(--color-flame)]/30 bg-[var(--color-flame)]/10 px-3 py-2 text-sm font-medium text-[var(--color-flame)]">
