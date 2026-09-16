@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import { LogOut, Users, Inbox, Search, X } from "lucide-react";
+import { LogOut, Users, Inbox, Search, X, FileSpreadsheet } from "lucide-react";
 import {
   getRegistrationsByEvent,
   isPaymentVerified,
   type Registration,
 } from "@/lib/registrations";
 import { RegistrationCard, SearchResultCard, StatTile } from "@/components/dashboard-ui";
+import { exportEventToExcel } from "@/components/AdminDashboard";
 
 /* =========================================================
    COORDINATOR DASHBOARD
@@ -96,13 +97,22 @@ export function CoordinatorDashboard({
             </h2>
             <p className="mt-1 text-sm text-slate-500">{name}</p>
           </div>
-          <button
-            type="button"
-            onClick={onLogout}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--color-electric)]/25 bg-white px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-ink)] transition-colors hover:border-[var(--color-flame)] hover:text-[var(--color-flame)]"
-          >
-            <LogOut className="size-4" /> Logout
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => exportEventToExcel(event, regs)}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--color-electric)] px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-widest text-white shadow-sm transition-all hover:bg-[var(--color-electric-bright)]"
+            >
+              <FileSpreadsheet className="size-4" /> Export Excel
+            </button>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-electric)]/25 bg-white px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-ink)] transition-colors hover:border-[var(--color-flame)] hover:text-[var(--color-flame)]"
+            >
+              <LogOut className="size-4" /> Logout
+            </button>
+          </div>
         </div>
 
         {/* Team & Member Stats */}

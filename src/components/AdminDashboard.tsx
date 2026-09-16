@@ -32,7 +32,7 @@ const EVENT_NAMES = COORDINATOR_ACCOUNTS.map(
    One row per registration (not per member).
    ========================================================= */
 
-function exportEventToExcel(
+export function exportEventToExcel(
   event: string,
   eventRegistrations: Registration[],
 ) {
@@ -42,18 +42,31 @@ function exportEventToExcel(
       return;
     }
 
+    const baseUrl =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://symposium-website-steel.vercel.app";
+
     const rows = eventRegistrations.map((r) => {
-      const payMethod =
-        (r as any).paymentMethod || (r.utr && r.utr !== "PAY_AT_EVENT" ? "ONLINE" : "NOT COLLECTED");
+      const rawMethod = (r as any).paymentMethod || "";
+      const payMethod = rawMethod.includes("|")
+        ? rawMethod.split("|")[0].trim()
+        : (rawMethod || (r.utr && r.utr !== "PAY_AT_EVENT" ? "ONLINE" : "NOT COLLECTED"));
+
+      const proofUrl = r.paymentProofPath
+        ? `${baseUrl}/view-id?p=${encodeURIComponent(r.paymentProofPath)}`
+        : (r.paymentProofUrl ? r.paymentProofUrl : "No Proof Uploaded");
 
       const row: Record<string, string | number> = {
         "Registration Number": r.registration_number,
+        "Event Name": r.event || event,
         "Team Name": r.teamName,
         "College Name": r.college,
         "Team Size": r.members.length,
         "Total Amount": r.amount,
         "Payment Status": isPaymentVerified(r) ? "VERIFIED" : "PENDING",
         "Payment Method": payMethod,
+        "Payment Proof": proofUrl,
         "Payment Collected Date/Time": (r as any).paymentCollectedAt || "",
         "Transaction ID / UTR": (r.utr && r.utr !== "PAY_AT_EVENT") ? r.utr : "",
         "Registration Date/Time": new Date(r.createdAt).toLocaleString("en-IN"),
@@ -65,7 +78,9 @@ function exportEventToExcel(
         row[`Member ${i + 1} Name`] = m ? m.name : "";
         row[`Member ${i + 1} Phone`] = m ? m.phone : "";
         row[`Member ${i + 1} Email`] = m ? m.email : "";
-        row[`Member ${i + 1} ID Card`] = m ? (m.idCardName || "ID Not Uploaded") : "";
+        row[`Member ${i + 1} ID Card`] = m?.idCardPath
+          ? `${baseUrl}/view-id?p=${encodeURIComponent(m.idCardPath)}`
+          : (m?.idCardName || "ID Not Uploaded");
       }
 
       return row;
@@ -74,12 +89,14 @@ function exportEventToExcel(
     const ws = XLSX.utils.json_to_sheet(rows, {
       header: [
         "Registration Number",
+        "Event Name",
         "Team Name",
         "College Name",
         "Team Size",
         "Total Amount",
         "Payment Status",
         "Payment Method",
+        "Payment Proof",
         "Payment Collected Date/Time",
         "Transaction ID / UTR",
         "Member 1 Name", "Member 1 Phone", "Member 1 Email", "Member 1 ID Card",
@@ -91,12 +108,12 @@ function exportEventToExcel(
     });
 
     ws["!cols"] = [
-      { wch: 20 }, { wch: 25 }, { wch: 30 }, { wch: 10 },
-      { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 25 }, { wch: 22 }, { wch: 25 },
-      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 30 },
-      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 30 },
-      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 30 },
-      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 30 },
+      { wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 30 }, { wch: 10 },
+      { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 45 }, { wch: 25 }, { wch: 22 },
+      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 45 },
+      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 45 },
+      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 45 },
+      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 45 },
       { wch: 22 },
     ];
 
@@ -112,6 +129,99 @@ function exportEventToExcel(
     alert(`${event} Excel downloaded successfully.`);
   } catch (error) {
     console.error("Excel export failed:", error);
+    alert(error instanceof Error ? error.message : "Failed to export Excel file.");
+  }
+}
+
+export function exportAllToExcel(allRegistrations: Registration[]) {
+  try {
+    if (!allRegistrations || allRegistrations.length === 0) {
+      alert("No registrations available to export.");
+      return;
+    }
+
+    const baseUrl =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://symposium-website-steel.vercel.app";
+
+    const rows = allRegistrations.map((r) => {
+      const rawMethod = (r as any).paymentMethod || "";
+      const payMethod = rawMethod.includes("|")
+        ? rawMethod.split("|")[0].trim()
+        : (rawMethod || (r.utr && r.utr !== "PAY_AT_EVENT" ? "ONLINE" : "NOT COLLECTED"));
+
+      const proofUrl = r.paymentProofPath
+        ? `${baseUrl}/view-id?p=${encodeURIComponent(r.paymentProofPath)}`
+        : (r.paymentProofUrl ? r.paymentProofUrl : "No Proof Uploaded");
+
+      const row: Record<string, string | number> = {
+        "Registration Number": r.registration_number,
+        "Event Name": r.event || "",
+        "Team Name": r.teamName,
+        "College Name": r.college,
+        "Team Size": r.members.length,
+        "Total Amount": r.amount,
+        "Payment Status": isPaymentVerified(r) ? "VERIFIED" : "PENDING",
+        "Payment Method": payMethod,
+        "Payment Proof": proofUrl,
+        "Payment Collected Date/Time": (r as any).paymentCollectedAt || "",
+        "Transaction ID / UTR": (r.utr && r.utr !== "PAY_AT_EVENT") ? r.utr : "",
+        "Registration Date/Time": new Date(r.createdAt).toLocaleString("en-IN"),
+      };
+
+      for (let i = 0; i < 4; i++) {
+        const m = r.members[i];
+        row[`Member ${i + 1} Name`] = m ? m.name : "";
+        row[`Member ${i + 1} Phone`] = m ? m.phone : "";
+        row[`Member ${i + 1} Email`] = m ? m.email : "";
+        row[`Member ${i + 1} ID Card`] = m?.idCardPath
+          ? `${baseUrl}/view-id?p=${encodeURIComponent(m.idCardPath)}`
+          : (m?.idCardName || "ID Not Uploaded");
+      }
+
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows, {
+      header: [
+        "Registration Number",
+        "Event Name",
+        "Team Name",
+        "College Name",
+        "Team Size",
+        "Total Amount",
+        "Payment Status",
+        "Payment Method",
+        "Payment Proof",
+        "Payment Collected Date/Time",
+        "Transaction ID / UTR",
+        "Member 1 Name", "Member 1 Phone", "Member 1 Email", "Member 1 ID Card",
+        "Member 2 Name", "Member 2 Phone", "Member 2 Email", "Member 2 ID Card",
+        "Member 3 Name", "Member 3 Phone", "Member 3 Email", "Member 3 ID Card",
+        "Member 4 Name", "Member 4 Phone", "Member 4 Email", "Member 4 ID Card",
+        "Registration Date/Time",
+      ],
+    });
+
+    ws["!cols"] = [
+      { wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 30 }, { wch: 10 },
+      { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 45 }, { wch: 25 }, { wch: 22 },
+      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 45 },
+      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 45 },
+      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 45 },
+      { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 45 },
+      { wch: 22 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "All Registrations");
+
+    const fileName = `NEXTRON-2026 All Registrations.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    alert("All Registrations Excel downloaded successfully.");
+  } catch (error) {
+    console.error("All Excel export failed:", error);
     alert(error instanceof Error ? error.message : "Failed to export Excel file.");
   }
 }
@@ -325,11 +435,21 @@ export function AdminDashboard({
         ================================================= */}
 
         <div className="mt-6 rounded-2xl border border-[var(--color-electric)]/15 bg-white p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <FileSpreadsheet className="size-5 text-[var(--color-electric)]" />
-            <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-ink)]">
-              Export Excel (per event)
-            </h3>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <FileSpreadsheet className="size-5 text-[var(--color-electric)]" />
+              <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-ink)]">
+                Export Excel
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => exportAllToExcel(all)}
+              className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-electric)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[var(--color-electric-bright)]"
+            >
+              <FileSpreadsheet className="size-4" />
+              Export All Registrations ({all.length})
+            </button>
           </div>
 
           <div className="flex flex-wrap gap-2">

@@ -23,6 +23,7 @@ const CLEAN_EVENT_HEADERS = [
   "UTR",
   "Razorpay Payment ID",
   "Razorpay Order ID",
+  "Payment Proof",
   "Registration Date",
   "Registration Date/Time",
   "Member 1 Name", "Member 1 Phone", "Member 1 Email", "Member 1 ID Card",
@@ -44,6 +45,7 @@ const CLEAN_SUMMARY_HEADERS = [
   "UTR",
   "Razorpay Payment ID",
   "Razorpay Order ID",
+  "Payment Proof",
   "Registration Date",
   "Registration Date/Time"
 ];
@@ -153,6 +155,16 @@ Deno.serve(async (req: Request) => {
     
     const formattedDate = fullReg.created_at ? new Date(fullReg.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "";
 
+    const cleanPayMethod = pay.remarks
+      ? pay.remarks.split("|")[0].trim()
+      : (fullReg.utr ? "ONLINE" : "NOT COLLECTED");
+
+    let paymentProofUrl = "No Proof Uploaded";
+    const proofMatch = pay.remarks?.match(/PROOF:([^\s]+)/);
+    if (proofMatch) {
+      paymentProofUrl = `${FRONTEND_URL}/view-id?p=${encodeURIComponent(proofMatch[1])}`;
+    }
+
     const rowData: Record<string, string | number> = {
       "Registration Number": fullReg.registration_number,
       "Registration Num": fullReg.registration_number,
@@ -164,13 +176,14 @@ Deno.serve(async (req: Request) => {
       "Total Amount Paid": fullReg.amount || 0,
       "Payment Status": pay.payment_status || "PENDING",
       "Registration Status": fullReg.registration_status || "ACCEPTED",
-      "Payment Method": pay.remarks || "NOT COLLECTED",
+      "Payment Method": cleanPayMethod,
       "Collection Date/Time": pay.verified_at || pay.updated_at || "N/A",
       "UTR": fullReg.utr || pay.utr_number || "N/A",
       "Razorpay Payment ID": pay.razorpay_payment_id || "N/A",
       "Razorpay Paym": pay.razorpay_payment_id || "N/A",
       "Razorpay Order ID": pay.razorpay_order_id || "N/A",
       "Razorpay Order": pay.razorpay_order_id || "N/A",
+      "Payment Proof": paymentProofUrl,
       "Registration Date": formattedDate,
       "Registration Dat": formattedDate,
       "Registration Date/Time": fullReg.created_at || "",
