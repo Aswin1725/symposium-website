@@ -34,11 +34,11 @@ export const EVENT_PAYMENT_DATA: Record<string, EventPaymentConfig> = {
     qrImage: "/qr/codedebug.png",
   },
   "Ideathon": {
-    upiId: "udaykiran9392@ybl",
+    upiId: "udaykiran9392@axl",
     qrImage: "/qr/ideathon.png",
   },
   "Web Design": {
-    upiId: "7670973554-2@axl",
+    upiId: "7670973554-2@ybl",
     qrImage: "/qr/webdesign.png",
   },
   "AI Video Animation & Generation": {
@@ -50,11 +50,11 @@ export const EVENT_PAYMENT_DATA: Record<string, EventPaymentConfig> = {
     qrImage: "/qr/techquiz.png",
   },
   "Electro Charades": {
-    upiId: "sowjanya0583@axl",
+    upiId: "sowjanya0583@ybl",
     qrImage: "/qr/electrocharades.png",
   },
   "Logo Design": {
-    upiId: "7842406485@ybl",
+    upiId: "7842406485@axl",
     qrImage: "/qr/logodesign.png",
   },
   "Photography": {
@@ -62,7 +62,7 @@ export const EVENT_PAYMENT_DATA: Record<string, EventPaymentConfig> = {
     qrImage: "/qr/photography.png",
   },
   "Treasure Hunt": {
-    upiId: "6301861219-2@ybl",
+    upiId: "6301861219-3@ibl",
     qrImage: "/qr/treasure.png",
   },
   "Meme Making": {
@@ -74,11 +74,11 @@ export const EVENT_PAYMENT_DATA: Record<string, EventPaymentConfig> = {
     qrImage: "/qr/cinequiz.png",
   },
   "Free Fire": {
-    upiId: "9959163510@ybl",
+    upiId: "9959163510@ibl",
     qrImage: "/qr/freefire.png",
   },
   "BGMI": {
-    upiId: "9347630150-3@ybl",
+    upiId: "9347630150-3@ibl",
     qrImage: "/qr/bgmi.png",
   },
   "Act & Guess": {

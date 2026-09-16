@@ -963,11 +963,22 @@ function RegistrationForm({ event }: { event: EventItem }) {
             {/* QR code area */}
             <div className="flex flex-col items-center gap-3">
               {payConfig.qrImage ? (
-                <img
-                  src={payConfig.qrImage}
-                  alt={`UPI QR code for ${event.name}`}
-                  className="h-52 w-52 rounded-xl border border-[var(--color-electric)]/20 object-contain bg-white p-1 shadow-sm"
-                />
+                <a
+                  href={payConfig.qrImage}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Click to view full size QR code"
+                  className="group flex flex-col items-center"
+                >
+                  <img
+                    src={payConfig.qrImage}
+                    alt={`UPI QR code for ${event.name}`}
+                    className="h-56 w-56 rounded-xl border border-[var(--color-electric)]/20 object-contain bg-white p-2 shadow-sm transition-all group-hover:border-[var(--color-electric)]/40 group-hover:shadow-md"
+                  />
+                  <span className="mt-1.5 text-[10px] font-semibold text-slate-400 group-hover:text-[var(--color-electric)] transition-colors">
+                    Click / tap to view full size
+                  </span>
+                </a>
               ) : (
                 <div className="flex h-52 w-52 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--color-electric)]/30 bg-white text-center px-4">
                   <IndianRupee className="size-8 text-[var(--color-electric)]/40 mb-2" />
