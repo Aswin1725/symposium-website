@@ -3,12 +3,7 @@
 //
 // Maps every event name → UPI ID and QR image path.
 //
-// QR images must be placed in public/qr/<slug>.png by the organiser.
-// When qrImage is null the UI shows "QR code not configured yet" instead
-// of a broken or fake image.
-//
-// When both upiId and qrImage are null (Reels Making) the UI shows
-// "Payment configuration not yet available — contact coordinators."
+// QR images live in public/qr/ and are served as static assets.
 // ---------------------------------------------------------------------------
 
 export type EventPaymentConfig = {
@@ -28,69 +23,69 @@ export type EventPaymentConfig = {
 export const EVENT_PAYMENT_DATA: Record<string, EventPaymentConfig> = {
   "Project Expo": {
     upiId: "aswinappu2005@ybl",
-    qrImage: null, // drop real QR into public/qr/project.png and set to "/qr/project.png"
+    qrImage: "/qr/project.png",
   },
   "Paper Presentation": {
     upiId: "raghavij2006@okaxis",
-    qrImage: null,
+    qrImage: "/qr/paper.png",
   },
   "Code Debugging": {
     upiId: "9985708284-2@ybl",
-    qrImage: null,
+    qrImage: "/qr/codedebug.png",
   },
   "Ideathon": {
     upiId: "udaykiran9392@ybl",
-    qrImage: null,
+    qrImage: "/qr/ideathon.png",
   },
   "Web Design": {
     upiId: "7670973554-2@axl",
-    qrImage: null,
+    qrImage: "/qr/webdesign.png",
   },
   "AI Video Animation & Generation": {
     upiId: "6281325750@superyes",
-    qrImage: null,
+    qrImage: "/qr/aivideo.png",
   },
   "Tech Quiz": {
     upiId: "9100309531-2@ybl",
-    qrImage: null,
+    qrImage: "/qr/techquiz.png",
   },
   "Electro Charades": {
     upiId: "sowjanya0583@axl",
-    qrImage: null,
+    qrImage: "/qr/electrocharades.png",
   },
   "Logo Design": {
     upiId: "7842406485@ybl",
-    qrImage: null,
+    qrImage: "/qr/logodesign.png",
   },
   "Photography": {
     upiId: "7995985503@ybl",
-    qrImage: null,
+    qrImage: "/qr/photography.png",
   },
   "Treasure Hunt": {
     upiId: "6301861219-2@ybl",
-    qrImage: null,
+    qrImage: "/qr/treasure.png",
   },
   "Meme Making": {
     upiId: "raavishyamsriram@ybl",
-    qrImage: null,
+    qrImage: "/qr/meme.png",
   },
   "Cine Quiz": {
     upiId: "9908382478-2@ybl",
-    qrImage: null,
+    qrImage: "/qr/cinequiz.png",
   },
   "Free Fire": {
     upiId: "9959163510@ybl",
-    qrImage: null,
+    qrImage: "/qr/freefire.png",
   },
   "BGMI": {
     upiId: "9347630150-3@ybl",
-    qrImage: null,
+    qrImage: "/qr/bgmi.png",
   },
   "Act & Guess": {
     upiId: "9390596679@ptsbi",
-    qrImage: null,
+    qrImage: "/qr/actguess.png",
   },
-  // Reels Making: no UPI ID or QR provided yet — marked fully null.
+  // Reels Making: no UPI ID or QR provided — fully unconfigured.
   "Reels Making": {
     upiId: null,
     qrImage: null,
