@@ -95,4 +95,6 @@ export type Registration = {
   createdAt: string;
   paymentStatus?: string;       // "PENDING" | "VERIFIED"
   paymentMethod?: string;       // "CASH" | "ONLINE" | "NOT COLLECTED"
+  paymentProofUrl?: string;     // Signed URL for viewing payment proof
+  paymentProofPath?: string | null;
 };

@@ -259,6 +259,15 @@ export function RegistrationCard({
                 UTR: <span className="font-mono font-medium text-[var(--color-ink)]">{reg.utr}</span>
               </span>
             )}
+            {reg.paymentProofUrl && (
+              <button
+                type="button"
+                onClick={() => setZoom({ url: reg.paymentProofUrl!, label: `Payment Proof — ${reg.teamName} (${reg.registration_number})` })}
+                className="mt-0.5 inline-flex items-center text-[11px] font-semibold text-[var(--color-electric)] hover:underline"
+              >
+                View Payment Proof ↗
+              </button>
+            )}
           </div>
           <PaymentActions
             reg={reg}

@@ -21,6 +21,9 @@ import {
   IndianRupee,
   Loader2,
   Ticket,
+  CloudUpload,
+  Info,
+  Send,
 } from "lucide-react";
 
 type Coordinator = { name: string; phone?: string; staff?: boolean };
@@ -535,7 +538,98 @@ function RegistrationForm({ event }: { event: EventItem }) {
   const [pricing, setPricing] = useState<any>(null);
   const [utrNumber, setUtrNumber] = useState("");
   const [upiCopied, setUpiCopied] = useState(false);
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
+  const [paymentProofName, setPaymentProofName] = useState("");
+  const [paymentProofSize, setPaymentProofSize] = useState("");
+  const [compressingProof, setCompressingProof] = useState(false);
   const objectUrls = useRef<string[]>([]);
+
+  const compressImageTo50KB = async (file: File): Promise<File> => {
+    if (file.size <= 50 * 1024) return file;
+
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 900;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          let quality = 0.75;
+          const tryCompress = (q: number) => {
+            canvas.toBlob(
+              (blob) => {
+                if (blob && (blob.size <= 50 * 1024 || q <= 0.15)) {
+                  const compFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                    type: "image/jpeg",
+                    lastModified: Date.now(),
+                  });
+                  resolve(compFile);
+                } else if (q > 0.15) {
+                  tryCompress(q - 0.15);
+                } else {
+                  resolve(file);
+                }
+              },
+              "image/jpeg",
+              q,
+            );
+          };
+          tryCompress(quality);
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
+  const handlePaymentProofSelect = async (file?: File) => {
+    if (!file) return;
+    setSubmitError(null);
+    setCompressingProof(true);
+    try {
+      let finalFile = file;
+      if (file.size > 50 * 1024) {
+        finalFile = await compressImageTo50KB(file);
+      }
+      if (finalFile.size > 50 * 1024) {
+        setSubmitError(
+          `Payment proof could not be compressed below 50 KB (current size: ${(finalFile.size / 1024).toFixed(1)} KB). Please choose a smaller image.`
+        );
+        setCompressingProof(false);
+        return;
+      }
+      const previewUrl = URL.createObjectURL(finalFile);
+      objectUrls.current.push(previewUrl);
+      setPaymentProofFile(finalFile);
+      setPaymentProofPreview(previewUrl);
+      setPaymentProofName(finalFile.name);
+      setPaymentProofSize(`${(finalFile.size / 1024).toFixed(1)} KB`);
+    } catch (err) {
+      console.error("Proof handling error:", err);
+      setSubmitError("Failed to process payment proof image.");
+    } finally {
+      setCompressingProof(false);
+    }
+  };
 
   useEffect(() => {
     supabase
@@ -700,6 +794,11 @@ function RegistrationForm({ event }: { event: EventItem }) {
           setSubmitError("Please enter your UTR / Transaction Number before submitting.");
           return;
         }
+        // Validate Payment Proof
+        if (!paymentProofFile) {
+          setSubmitError("Please upload a screenshot of your successful UPI payment proof before submitting.");
+          return;
+        }
         setLoading(true);
         setSubmitError(null);
 
@@ -711,6 +810,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
             members,
             totalAmount: totalAmount as number,
             utrNumber: trimmedUtr,
+            paymentProofFile,
           });
           setLoading(false);
           setRegId(res.registration_number);
@@ -1047,6 +1147,107 @@ function RegistrationForm({ event }: { event: EventItem }) {
                 className="w-full rounded-lg border border-[var(--color-electric)]/20 bg-white px-3 py-2 text-sm font-mono text-[var(--color-ink)] outline-none transition-colors focus:border-[var(--color-electric)] focus:ring-2 focus:ring-[var(--color-electric)]/20 disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
+
+            {/* PAYMENT PROOF Section */}
+            <div>
+              <label className="mb-2 block font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)]">
+                Payment Proof <span className="text-red-500 font-bold">*</span>
+              </label>
+
+              {!paymentProofPreview ? (
+                <div className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/25 px-4 py-8 text-center transition-all hover:border-blue-300 hover:bg-blue-50/40">
+                  <div className="mb-2 flex size-12 items-center justify-center rounded-full text-blue-600">
+                    <CloudUpload className="size-10 stroke-[1.5]" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    Upload Screenshot of Successful Payment{" "}
+                    <span className="font-bold text-blue-600">(Max 50 KB)</span>
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Allowed formats: JPG, JPEG, PNG, WEBP
+                  </p>
+
+                  <label className="mt-4 inline-flex cursor-pointer items-center justify-center rounded-lg border border-blue-200 bg-blue-50/60 px-6 py-2 text-xs font-semibold text-blue-700 shadow-sm transition-all hover:bg-blue-100 hover:border-blue-300 active:scale-95">
+                    {compressingProof ? (
+                      <>
+                        <Loader2 className="mr-2 size-3.5 animate-spin" />
+                        Optimizing...
+                      </>
+                    ) : (
+                      "Choose Image"
+                    )}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/jpg"
+                      disabled={loading || compressingProof}
+                      onChange={(e) => handlePaymentProofSelect(e.target.files?.[0])}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-200/80 bg-white p-3.5 shadow-sm">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={paymentProofPreview}
+                      alt="Payment Proof Preview"
+                      className="size-14 rounded-lg border border-slate-200 object-cover shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold text-slate-800">
+                        {paymentProofName}
+                      </p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                          ✓ {paymentProofSize}
+                        </span>
+                        <span className="text-[10px] text-slate-400">Ready to upload</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <label className="cursor-pointer rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+                      Change
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/jpg"
+                        disabled={loading || compressingProof}
+                        onChange={(e) => handlePaymentProofSelect(e.target.files?.[0])}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentProofFile(null);
+                        setPaymentProofPreview(null);
+                        setPaymentProofName("");
+                        setPaymentProofSize("");
+                      }}
+                      className="rounded-lg p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Remove image"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Note callout box matching reference */}
+              <div className="mt-3 flex gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <Info className="size-5 shrink-0 text-blue-600 mt-0.5" />
+                <div className="text-xs text-blue-950">
+                  <p className="font-bold">Note:</p>
+                  <ol className="mt-1 list-decimal list-inside space-y-0.5 text-[11px] text-blue-900/90 leading-relaxed">
+                    <li>Upload a clear screenshot of the successful UPI payment.</li>
+                    <li>File size must be 50 KB or smaller.</li>
+                    <li>Allowed formats: JPG, JPEG, PNG, WEBP.</li>
+                    <li>Make sure the amount and UPI details are visible in the screenshot.</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
           </div>
         );
       })()}
@@ -1060,18 +1261,18 @@ function RegistrationForm({ event }: { event: EventItem }) {
 
       <button
         type="submit"
-        disabled={loading || totalAmount === null}
+        disabled={loading || totalAmount === null || compressingProof}
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-electric)] px-7 py-3.5 font-display text-sm font-semibold uppercase tracking-widest text-white transition-all hover:bg-[var(--color-electric-bright)] hover:shadow-[0_10px_30px_rgba(18,87,184,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? (
           <>
             <Loader2 className="size-4 animate-spin" />
-            Booking Slot...
+            Submitting Registration...
           </>
         ) : (
           <>
-            <Ticket className="size-4" />
-            Book Slot
+            <Send className="size-4" />
+            Submit Registration
           </>
         )}
       </button>

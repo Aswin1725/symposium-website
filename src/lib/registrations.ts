@@ -1,6 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import {
   getIdCardSignedUrl,
+  uploadIdCard,
+  uploadPaymentProof,
+  getPaymentProofSignedUrl,
 } from "@/lib/storage";
 
 import type {
@@ -11,7 +14,6 @@ import type {
   MemberRow,
   PaymentRow,
 } from "@/lib/types";
-import { uploadIdCard } from "@/lib/storage";
 
 // Re-export types
 export type {
@@ -101,6 +103,14 @@ async function assembleRegistration(
     paymentMethod:
       paymentRow?.remarks ??
       (paymentRow?.payment_status === "VERIFIED" ? "ONLINE" : "NOT COLLECTED"),
+
+    paymentProofPath: paymentRow?.remarks?.includes("PROOF:")
+      ? paymentRow.remarks.split("PROOF:")[1]?.trim() ?? null
+      : null,
+
+    paymentProofUrl: paymentRow?.remarks?.includes("PROOF:")
+      ? await getPaymentProofSignedUrl(paymentRow.remarks.split("PROOF:")[1]?.trim() ?? null)
+      : "",
   };
 }
 
@@ -121,6 +131,8 @@ export async function registerDirectly(payload: {
   totalAmount: number;
   /** UTR / transaction number entered by the participant after UPI payment */
   utrNumber: string;
+  /** Payment proof screenshot file */
+  paymentProofFile?: File | null;
 }): Promise<{ registration_number: string }> {
   // 1. Generate unique registration number
   const regNum = "NEX-" + Math.floor(Math.random() * 900000 + 100000);
@@ -160,7 +172,17 @@ export async function registerDirectly(payload: {
     })
   );
 
-  // 5. Insert members
+  // 5. Upload payment proof if provided
+  let paymentProofPath: string | null = null;
+  if (payload.paymentProofFile) {
+    try {
+      paymentProofPath = await uploadPaymentProof(regId, payload.paymentProofFile);
+    } catch (proofErr) {
+      console.warn("Payment proof upload warning:", proofErr);
+    }
+  }
+
+  // 6. Insert members
   const memberInserts = payload.members.map((m, idx) => ({
     registration_id: regId,
     member_number: idx + 1,
@@ -173,12 +195,13 @@ export async function registerDirectly(payload: {
   const { error: memErr } = await supabase.from("members").insert(memberInserts);
   if (memErr) throw new Error("Failed to save members: " + memErr.message);
 
-  // 6. Insert payment as PENDING with the UPI UTR entered by the participant
+  // 7. Insert payment as PENDING with the UPI UTR and payment proof in remarks
+  const remarks = paymentProofPath ? `UPI | PROOF:${paymentProofPath}` : "UPI";
   const { error: payErr } = await supabase.from("payments").insert({
     registration_id: regId,
     amount: payload.totalAmount,
     payment_status: "PENDING",
-    remarks: "UPI",
+    remarks,
     utr_number: payload.utrNumber,
   });
   if (payErr) throw new Error("Failed to save payment status: " + payErr.message);
