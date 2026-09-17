@@ -108,14 +108,14 @@ export function ViewId() {
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--color-ink-soft)]">
-                Email or Username
+                User ID
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full rounded-xl border border-[var(--color-electric)]/20 bg-[var(--color-paper)] px-4 py-3 text-sm text-[var(--color-ink)] outline-none transition-colors focus:border-[var(--color-electric)]"
-                placeholder="e.g. admin@nextron.com"
+                placeholder="e.g. admin or paper"
                 required
               />
             </div>

@@ -33,7 +33,7 @@ export function Login({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginInput.trim() || !password) {
-      setError("Please enter both username/email and password.");
+      setError("Please enter both User ID and password.");
       return;
     }
 
@@ -164,7 +164,7 @@ export function Login({
 
             <div>
               <label className={labelClass} htmlFor="loginInput">
-                Email or Username
+                User ID
               </label>
               <input
                 id="loginInput"
@@ -173,7 +173,7 @@ export function Login({
                 autoComplete="username"
                 value={loginInput}
                 onChange={(e) => setLoginInput(e.target.value)}
-                placeholder={mode === "admin" ? "admin@nextron.com" : "coordinator email"}
+                placeholder="Enter User ID"
                 className={inputClass}
               />
             </div>

@@ -496,22 +496,22 @@ BEGIN
   -- Insert initial coordinators matching existing events if empty
   IF (SELECT count(*) FROM public.coordinators WHERE role = 'coordinator') = 0 THEN
     INSERT INTO public.coordinators (name, email, password_hash, role, is_active, assigned_events) VALUES
-      ('Paper Presentation Coordinator', 'paper@nextron.com', crypt('paper@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Paper Presentation']),
-      ('Project Expo Coordinator', 'project@nextron.com', crypt('project@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Project Expo']),
-      ('Code Debugging Coordinator', 'codedebug@nextron.com', crypt('code@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Code Debugging']),
-      ('Tech Quiz Coordinator', 'techquiz@nextron.com', crypt('techquiz@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Tech Quiz']),
-      ('Logo Design Coordinator', 'logodesign@nextron.com', crypt('logo@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Logo Design']),
-      ('Ideathon Coordinator', 'ideathon@nextron.com', crypt('ideathon@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Ideathon']),
-      ('Web Design Coordinator', 'webdesign@nextron.com', crypt('web@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Web Design']),
-      ('Electro Charades Coordinator', 'electrocharades@nextron.com', crypt('electro@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Electro Charades']),
-      ('AI Video Animation Coordinator', 'aivideo@nextron.com', crypt('aivideo@2026', gen_salt('bf')), 'coordinator', true, ARRAY['AI Video Animation & Generation']),
-      ('Free Fire Coordinator', 'freefire@nextron.com', crypt('freefire@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Free Fire']),
-      ('BGMI Coordinator', 'bgmi@nextron.com', crypt('bgmi@2026', gen_salt('bf')), 'coordinator', true, ARRAY['BGMI']),
-      ('Photography Coordinator', 'photo@nextron.com', crypt('photo@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Photography']),
-      ('Treasure Hunt Coordinator', 'treasure@nextron.com', crypt('treasure@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Treasure Hunt']),
-      ('Reels Making Coordinator', 'reels@nextron.com', crypt('reels@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Reels Making']),
-      ('Meme Making Coordinator', 'meme@nextron.com', crypt('meme@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Meme Making']),
-      ('Cine Quiz Coordinator', 'cinequiz@nextron.com', crypt('cine@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Cine Quiz']),
-      ('Act & Guess Coordinator', 'actguess@nextron.com', crypt('act@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Act & Guess']);
+      ('Paper Presentation Coordinator', 'paper', crypt('paper@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Paper Presentation']),
+      ('Project Expo Coordinator', 'project', crypt('project@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Project Expo']),
+      ('Code Debugging Coordinator', 'codedebug', crypt('code@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Code Debugging']),
+      ('Tech Quiz Coordinator', 'techquiz', crypt('techquiz@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Tech Quiz']),
+      ('Logo Design Coordinator', 'logodesign', crypt('logo@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Logo Design']),
+      ('Ideathon Coordinator', 'ideathon', crypt('ideathon@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Ideathon']),
+      ('Web Design Coordinator', 'webdesign', crypt('web@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Web Design']),
+      ('Electro Charades Coordinator', 'electrocharades', crypt('electro@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Electro Charades']),
+      ('AI Video Animation Coordinator', 'aivideo', crypt('aivideo@2026', gen_salt('bf')), 'coordinator', true, ARRAY['AI Video Animation & Generation']),
+      ('Free Fire Coordinator', 'freefire', crypt('freefire@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Free Fire']),
+      ('BGMI Coordinator', 'bgmi', crypt('bgmi@2026', gen_salt('bf')), 'coordinator', true, ARRAY['BGMI']),
+      ('Photography Coordinator', 'photo', crypt('photo@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Photography']),
+      ('Treasure Hunt Coordinator', 'treasure', crypt('treasure@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Treasure Hunt']),
+      ('Reels Making Coordinator', 'reels', crypt('reels@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Reels Making']),
+      ('Meme Making Coordinator', 'meme', crypt('meme@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Meme Making']),
+      ('Cine Quiz Coordinator', 'cinequiz', crypt('cine@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Cine Quiz']),
+      ('Act & Guess Coordinator', 'actguess', crypt('act@2026', gen_salt('bf')), 'coordinator', true, ARRAY['Act & Guess']);
   END IF;
 END $$;

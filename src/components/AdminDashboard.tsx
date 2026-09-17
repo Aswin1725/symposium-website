@@ -409,7 +409,7 @@ export function AdminDashboard({
   const handleSaveCoordinator = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formEmail.trim()) {
-      setFormError("Name and email are required");
+      setFormError("Name and User ID are required");
       return;
     }
 
@@ -915,16 +915,16 @@ export function AdminDashboard({
 
                 <div>
                   <label className="mb-1 block font-display text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Email / Login Username
+                    User ID / Username
                   </label>
                   <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-3 size-4 text-slate-400" />
+                    <User className="pointer-events-none absolute left-3 top-3 size-4 text-slate-400" />
                     <input
-                      type="email"
+                      type="text"
                       required
                       value={formEmail}
                       onChange={(e) => setFormEmail(e.target.value)}
-                      placeholder="e.g. paper@nextron.com"
+                      placeholder="e.g. paper"
                       className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-3 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-electric)]"
                     />
                   </div>
