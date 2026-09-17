@@ -1,7 +1,11 @@
 {
-  "description": "Enhance your website with a customizable top bar featuring a college logo and a real-time clock, perfect for educational institutions.",
+  "title": "NEXTRON 2026 | National Level Technical Symposium",
+  "description": "NEXTRON 2026 - National Level Technical Symposium organized by Department of Electronics and Communication Engineering, Kuppam Engineering College.",
+  "icons": {
+    "icon": "/favicon.png"
+  },
   "robots": {
-    "index": false
+    "index": true
   },
   "accessibility": {
     "addBypassLinks": false,
