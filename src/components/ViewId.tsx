@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Lock, Image as ImageIcon, Loader2 } from "lucide-react";
 import { loginUser, validateSession, type Session } from "@/lib/auth";
-import { getIdCardSignedUrl } from "@/lib/storage";
+import { getIdCardSignedUrl, getPaymentProofSignedUrl } from "@/lib/storage";
 
 export function ViewId() {
   const params = new URLSearchParams(window.location.search);
@@ -50,9 +50,11 @@ export function ViewId() {
     setLoading(true);
     setLoadError("");
     try {
-      const url = await getIdCardSignedUrl(path);
+      const url = path.includes("payment-proof")
+        ? await getPaymentProofSignedUrl(path, session.token)
+        : await getIdCardSignedUrl(path, session.token);
       if (!url) {
-        throw new Error("Failed to generate secure URL. The file may not exist.");
+        throw new Error("Failed to generate secure URL. The file may not exist or access is restricted.");
       }
       setImgUrl(url);
     } catch (err) {

@@ -209,6 +209,7 @@ BEGIN
           'verified_at', p.verified_at,
           'verified_by', p.verified_by,
           'remarks', p.remarks,
+          'payment_proof_path', p.payment_proof_path,
           'created_at', p.created_at
         )
         FROM public.payments p
@@ -300,20 +301,13 @@ BEGIN
   v_action := upper(trim(p_action));
 
   IF v_action = 'ACCEPT' THEN
-    -- Preserve proof from remarks if present
-    IF v_pay.remarks LIKE '%PROOF:%' THEN
-      v_new_remarks := 'UPI | ' || substring(v_pay.remarks from 'PROOF:[^ ]+');
-    ELSE
-      v_new_remarks := 'UPI';
-    END IF;
-
     UPDATE public.registrations
     SET registration_status = 'ACCEPTED'
     WHERE id = p_registration_id;
 
     UPDATE public.payments
     SET payment_status = 'VERIFIED',
-        remarks = v_new_remarks,
+        remarks = 'UPI',
         verified_at = now(),
         verified_by = v_user.name
     WHERE id = v_pay.id;
@@ -322,25 +316,18 @@ BEGIN
       'success', true,
       'registration_status', 'ACCEPTED',
       'payment_status', 'VERIFIED',
-      'remarks', v_new_remarks,
+      'remarks', 'UPI',
       'verified_at', now()
     );
 
   ELSIF v_action = 'REJECT' THEN
-    -- Preserve proof from remarks if present
-    IF v_pay.remarks LIKE '%PROOF:%' THEN
-      v_new_remarks := 'REJECTED | ' || substring(v_pay.remarks from 'PROOF:[^ ]+');
-    ELSE
-      v_new_remarks := 'REJECTED';
-    END IF;
-
     UPDATE public.registrations
     SET registration_status = 'REJECTED'
     WHERE id = p_registration_id;
 
     UPDATE public.payments
     SET payment_status = 'FAILED',
-        remarks = v_new_remarks,
+        remarks = 'REJECTED',
         verified_at = now(),
         verified_by = v_user.name
     WHERE id = v_pay.id;
@@ -349,7 +336,7 @@ BEGIN
       'success', true,
       'registration_status', 'REJECTED',
       'payment_status', 'FAILED',
-      'remarks', v_new_remarks,
+      'remarks', 'REJECTED',
       'verified_at', now()
     );
   ELSE

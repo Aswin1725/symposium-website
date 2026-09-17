@@ -14,6 +14,7 @@ import {
   type Registration,
   type RegStatus,
 } from "@/lib/registrations";
+import { getPaymentProofSignedUrl } from "@/lib/storage";
 
 const statusMeta: Record<
   RegStatus,
@@ -404,10 +405,23 @@ export function RegistrationCard({
                 UTR: <span className="font-mono font-medium text-[var(--color-ink)]">{reg.utr}</span>
               </span>
             )}
-            {reg.paymentProofUrl && (
+            {(reg.paymentProofUrl || reg.paymentProofPath) && (
               <button
                 type="button"
-                onClick={() => setZoom({ src: reg.paymentProofUrl!, label: `Payment Proof — ${reg.teamName} (${reg.registration_number})` })}
+                onClick={async () => {
+                  let url = reg.paymentProofUrl;
+                  if (!url && reg.paymentProofPath) {
+                    url = await getPaymentProofSignedUrl(reg.paymentProofPath, token);
+                  }
+                  if (url) {
+                    setZoom({
+                      src: url,
+                      label: `Payment Proof — ${reg.teamName} (${reg.registration_number})`,
+                    });
+                  } else {
+                    alert("Unable to generate secure signed URL for payment proof.");
+                  }
+                }}
                 className="mt-0.5 inline-flex items-center text-[11px] font-semibold text-[var(--color-electric)] hover:underline"
               >
                 View Payment Proof ↗

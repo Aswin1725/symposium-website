@@ -104,13 +104,19 @@ async function assembleRegistration(
       paymentRow?.remarks ??
       (paymentRow?.payment_status === "VERIFIED" ? "ONLINE" : "NOT COLLECTED"),
 
-    paymentProofPath: paymentRow?.remarks?.includes("PROOF:")
-      ? paymentRow.remarks.split("PROOF:")[1]?.trim() ?? null
-      : null,
+    paymentProofPath:
+      (paymentRow as any)?.payment_proof_path ||
+      (paymentRow?.remarks?.includes("PROOF:")
+        ? (paymentRow.remarks.split("PROOF:")[1]?.trim() ?? null)
+        : null),
 
-    paymentProofUrl: paymentRow?.remarks?.includes("PROOF:")
-      ? await getPaymentProofSignedUrl(paymentRow.remarks.split("PROOF:")[1]?.trim() ?? null)
-      : "",
+    paymentProofUrl:
+      (paymentRow as any)?.payment_proof_path || paymentRow?.remarks?.includes("PROOF:")
+        ? await getPaymentProofSignedUrl(
+            (paymentRow as any)?.payment_proof_path ||
+              (paymentRow?.remarks?.split("PROOF:")[1]?.trim() ?? null),
+          )
+        : "",
   };
 }
 
@@ -195,14 +201,14 @@ export async function registerDirectly(payload: {
   const { error: memErr } = await supabase.from("members").insert(memberInserts);
   if (memErr) throw new Error("Failed to save members: " + memErr.message);
 
-  // 7. Insert payment as PENDING with the UPI UTR and payment proof in remarks
-  const remarks = paymentProofPath ? `UPI | PROOF:${paymentProofPath}` : "UPI";
+  // 7. Insert payment as PENDING with student's actual UTR and payment_proof_path
   const { error: payErr } = await supabase.from("payments").insert({
     registration_id: regId,
     amount: payload.totalAmount,
     payment_status: "PENDING",
-    remarks,
+    remarks: "UPI",
     utr_number: payload.utrNumber,
+    payment_proof_path: paymentProofPath,
   });
   if (payErr) throw new Error("Failed to save payment status: " + payErr.message);
 
@@ -882,9 +888,11 @@ export async function fetchScopedRegistrations(
 
       const payment = item.payment;
       const remarks = payment?.remarks || "";
-      const proofPath = remarks.includes("PROOF:")
-        ? remarks.split("PROOF:")[1]?.trim().split(" ")[0] ?? null
-        : null;
+      const proofPath =
+        payment?.payment_proof_path ||
+        (remarks.includes("PROOF:")
+          ? remarks.split("PROOF:")[1]?.trim().split(" ")[0] ?? null
+          : null);
 
       return {
         id: item.id,
@@ -905,7 +913,7 @@ export async function fetchScopedRegistrations(
             : "UPI"),
         paymentProofPath: proofPath,
         paymentProofUrl: proofPath
-          ? await getPaymentProofSignedUrl(proofPath)
+          ? await getPaymentProofSignedUrl(proofPath, token)
           : "",
         verifiedAt: payment?.verified_at ?? null,
         verifiedBy: payment?.verified_by ?? null,

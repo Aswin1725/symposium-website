@@ -604,31 +604,37 @@ function RegistrationForm({ event }: { event: EventItem }) {
   const handlePaymentProofSelect = async (file?: File) => {
     if (!file) return;
     setSubmitError(null);
-    setCompressingProof(true);
-    try {
-      let finalFile = file;
-      if (file.size > 50 * 1024) {
-        finalFile = await compressImageTo50KB(file);
-      }
-      if (finalFile.size > 50 * 1024) {
-        setSubmitError(
-          `Payment proof could not be compressed below 50 KB (current size: ${(finalFile.size / 1024).toFixed(1)} KB). Please choose a smaller image.`
-        );
-        setCompressingProof(false);
-        return;
-      }
-      const previewUrl = URL.createObjectURL(finalFile);
-      objectUrls.current.push(previewUrl);
-      setPaymentProofFile(finalFile);
-      setPaymentProofPreview(previewUrl);
-      setPaymentProofName(finalFile.name);
-      setPaymentProofSize(`${(finalFile.size / 1024).toFixed(1)} KB`);
-    } catch (err) {
-      console.error("Proof handling error:", err);
-      setSubmitError("Failed to process payment proof image.");
-    } finally {
-      setCompressingProof(false);
+
+    // Validate MIME type & extension
+    const validExtensions = ["jpg", "jpeg", "png", "webp"];
+    const fileExt = file.name.split(".").pop()?.toLowerCase() || "";
+    const isValidType =
+      file.type.startsWith("image/") &&
+      (validExtensions.includes(fileExt) ||
+        file.type.includes("jpeg") ||
+        file.type.includes("png") ||
+        file.type.includes("webp"));
+
+    if (!isValidType) {
+      setSubmitError("Payment proof must be an image file (JPG, JPEG, PNG, or WEBP).");
+      return;
     }
+
+    // Validate size limit: 50 KB max (51,200 bytes)
+    const MAX_SIZE_BYTES = 50 * 1024;
+    if (file.size > MAX_SIZE_BYTES) {
+      setSubmitError(
+        `Payment proof file size (${(file.size / 1024).toFixed(1)} KB) exceeds the 50 KB limit. Please upload an image 50 KB or smaller.`
+      );
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    objectUrls.current.push(previewUrl);
+    setPaymentProofFile(file);
+    setPaymentProofPreview(previewUrl);
+    setPaymentProofName(file.name);
+    setPaymentProofSize(`${(file.size / 1024).toFixed(1)} KB`);
   };
 
   useEffect(() => {

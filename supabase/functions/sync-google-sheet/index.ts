@@ -160,9 +160,9 @@ Deno.serve(async (req: Request) => {
       : (fullReg.utr && fullReg.utr !== "PAY_AT_EVENT" ? "ONLINE" : "UPI");
 
     let paymentProofUrl = "No Proof Uploaded";
-    const proofMatch = pay.remarks?.match(/PROOF:([^\s]+)/);
-    if (proofMatch) {
-      paymentProofUrl = `${FRONTEND_URL}/view-id?p=${encodeURIComponent(proofMatch[1])}`;
+    const proofPath = pay.payment_proof_path || pay.remarks?.match(/PROOF:([^\s]+)/)?.[1];
+    if (proofPath) {
+      paymentProofUrl = `${FRONTEND_URL}/view-id?p=${encodeURIComponent(proofPath)}`;
     }
 
     const rowData: Record<string, string | number> = {
