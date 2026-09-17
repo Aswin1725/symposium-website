@@ -33,6 +33,7 @@ body {
 * {
   scrollbar-width: none;
 }
+
 *::-webkit-scrollbar {
   width: 0;
   height: 0;
@@ -48,17 +49,20 @@ body {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
 }
 
 @keyframes nextron-pulse {
+
   0%,
   100% {
     opacity: 0.35;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.6;
     transform: scale(1.06);
