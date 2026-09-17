@@ -43,8 +43,8 @@ async function assembleRegistration(
 
         idCard: withSignedUrls
           ? await getIdCardSignedUrl(
-              m.id_card_path,
-            )
+            m.id_card_path,
+          )
           : "",
 
         idCardName: m.id_card_path
@@ -155,7 +155,7 @@ export async function registerDirectly(payload: {
       team_name: payload.teamName,
       college_name: payload.college,
       amount: payload.totalAmount,
-      registration_status: "ACCEPTED", // As requested: save ACCEPTED in DB
+      registration_status: "PENDING", // PENDING until coordinator/admin verifies payment
     })
     .select("id")
     .single();
@@ -429,11 +429,11 @@ export async function getAllRegistrations(): Promise<
           row,
 
           membersMap[
-            row.id
+          row.id
           ] ?? [],
 
           paymentsMap[
-            row.id
+          row.id
           ] ?? null,
 
           true,
@@ -629,11 +629,11 @@ export async function getRegistrationsByEvent(
           row,
 
           membersMap[
-            row.id
+          row.id
           ] ?? [],
 
           paymentsMap[
-            row.id
+          row.id
           ] ?? null,
 
           false,
@@ -836,4 +836,145 @@ function groupBy<T>(
     },
     {},
   );
+}
+
+// ---------------------------------------------------------------------------
+// Server-scoped registration fetch via RPC
+// Admin gets all or filtered by event; Coordinator gets strictly assigned events
+// ---------------------------------------------------------------------------
+export async function fetchScopedRegistrations(
+  token: string,
+  event?: string,
+): Promise<Registration[]> {
+  const { data, error } = await supabase.rpc(
+    "get_admin_or_coordinator_registrations",
+    {
+      p_token: token,
+      p_event: event && event !== "all" ? event : null,
+    },
+  );
+
+  if (error) {
+    console.error("fetchScopedRegistrations RPC error:", error);
+    throw new Error(error.message || "Failed to fetch registrations");
+  }
+
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return Promise.all(
+    data.map(async (item: any) => {
+      const members: Member[] = await Promise.all(
+        (item.members || []).map(async (m: any) => ({
+          name: m.name,
+          phone: m.phone,
+          email: m.email,
+          idCard: m.id_card_path
+            ? await getIdCardSignedUrl(m.id_card_path)
+            : "",
+          idCardName: m.id_card_path
+            ? m.id_card_path.split("/").pop() ?? ""
+            : "",
+          idCardPath: m.id_card_path || null,
+        })),
+      );
+
+      const payment = item.payment;
+      const remarks = payment?.remarks || "";
+      const proofPath = remarks.includes("PROOF:")
+        ? remarks.split("PROOF:")[1]?.trim().split(" ")[0] ?? null
+        : null;
+
+      return {
+        id: item.id,
+        registration_number: item.registration_number,
+        event: item.event,
+        teamName: item.team_name,
+        college: item.college_name,
+        members,
+        utr: payment?.utr_number || "",
+        amount: item.amount,
+        status: String(item.registration_status || "PENDING").toLowerCase() as RegStatus,
+        createdAt: item.created_at,
+        paymentStatus: payment?.payment_status || "PENDING",
+        paymentMethod:
+          remarks ||
+          (payment?.payment_status === "VERIFIED"
+            ? "ONLINE"
+            : "UPI"),
+        paymentProofPath: proofPath,
+        paymentProofUrl: proofPath
+          ? await getPaymentProofSignedUrl(proofPath)
+          : "",
+        verifiedAt: payment?.verified_at ?? null,
+        verifiedBy: payment?.verified_by ?? null,
+      };
+    }),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Verify payment & registration action: ACCEPT or REJECT
+// Preserves proof in remarks, updates DB & triggers Google Sheets webhook
+// ---------------------------------------------------------------------------
+export async function verifyPaymentStatus(
+  token: string,
+  registrationId: string,
+  action: "ACCEPT" | "REJECT",
+): Promise<{ success: boolean; error?: string }> {
+  const { data, error } = await supabase.rpc(
+    "verify_payment_and_registration",
+    {
+      p_token: token,
+      p_registration_id: registrationId,
+      p_action: action,
+    },
+  );
+
+  if (error) {
+    console.error("verifyPaymentStatus RPC error:", error);
+    return { success: false, error: error.message || "Failed to update status" };
+  }
+
+  if (!data || !data.success) {
+    return { success: false, error: data?.error || "Failed to update status" };
+  }
+
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Coordinator Management RPC (Admin only)
+// ---------------------------------------------------------------------------
+export type CoordinatorRecord = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+  assigned_events: string[];
+  created_at: string;
+};
+
+export async function adminManageCoordinators(
+  token: string,
+  action: "list" | "add" | "edit" | "toggle_status" | "delete",
+  data?: any,
+): Promise<{ success: boolean; error?: string; coordinators?: CoordinatorRecord[] }> {
+  const { data: resData, error } = await supabase.rpc(
+    "admin_manage_coordinator",
+    {
+      p_token: token,
+      p_action: action,
+      p_data: data || {},
+    },
+  );
+
+  if (error) {
+    console.error("adminManageCoordinator RPC error:", error);
+    return { success: false, error: error.message || "Operation failed" };
+  }
+
+  return resData;
 }

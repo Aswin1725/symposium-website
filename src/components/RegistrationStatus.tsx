@@ -78,6 +78,10 @@ export function RegistrationStatus() {
         {result.kind === "found" &&
           (() => {
             const isPaid = isPaymentVerified(result.reg);
+            const isRejected =
+              result.reg.status === "rejected" ||
+              result.reg.paymentStatus?.toUpperCase() === "FAILED";
+
             return (
               <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-electric)]/15 bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-[var(--color-electric)]/10 bg-[var(--color-paper)] px-6 py-4">
@@ -89,10 +93,22 @@ export function RegistrationStatus() {
                       {result.reg.registration_number}
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 font-display text-sm font-semibold uppercase tracking-widest text-emerald-600">
-                    <CheckCircle2 className="size-4" />
-                    Slot Booked
-                  </span>
+                  {isPaid ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 font-display text-sm font-semibold uppercase tracking-widest text-emerald-600">
+                      <CheckCircle2 className="size-4" />
+                      Slot Booked
+                    </span>
+                  ) : isRejected ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 font-display text-sm font-semibold uppercase tracking-widest text-red-600">
+                      <XCircle className="size-4" />
+                      Rejected
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 font-display text-sm font-semibold uppercase tracking-widest text-amber-600">
+                      <Clock className="size-4" />
+                      Pending Verification
+                    </span>
+                  )}
                 </div>
                 <dl className="grid gap-3 px-6 py-5 text-sm">
                   <div className="flex justify-between gap-4">
@@ -131,36 +147,38 @@ export function RegistrationStatus() {
                       {isPaid ? (
                         <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
                           <CheckCircle2 className="size-4" />
-                          Payment Received
+                          Payment Verified
+                        </span>
+                      ) : isRejected ? (
+                        <span className="inline-flex items-center gap-1 font-semibold text-red-600">
+                          <XCircle className="size-4" />
+                          Payment Rejected
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
                           <Clock className="size-4" />
-                          Payment Not Collected
+                          Pending Verification
                         </span>
                       )}
                     </dd>
                   </div>
-                  {isPaid && result.reg.paymentMethod && (
-                    <div className="flex justify-between items-center gap-4">
-                      <dt className="text-slate-500">Payment Mode</dt>
-                      <dd className="text-right font-medium text-[var(--color-ink)]">
-                        {result.reg.paymentMethod}
-                      </dd>
-                    </div>
-                  )}
+
                 </dl>
                 <div
                   className={`border-t px-6 py-3.5 text-xs font-medium ${
                     isPaid
                       ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+                      : isRejected
+                      ? "border-red-100 bg-red-50 text-red-700"
                       : "border-amber-100 bg-amber-50 text-amber-700"
                   }`}
                 >
                   {isPaid ? (
-                    <p>✓ Payment verified at event registration desk ({result.reg.paymentMethod || "PAID"}). We look forward to seeing you at the event!</p>
+                    <p>✓ Payment verified. Your slot is booked and confirmed! We look forward to seeing you at NEXTRON-2026.</p>
+                  ) : isRejected ? (
+                    <p>✕ Payment verification failed or registration was rejected. If you have questions, please reach out to the coordinator desk.</p>
                   ) : (
-                    <p>Please pay the registration fee of ₹{result.reg.amount} at the event registration desk on the event day.</p>
+                    <p>🕒 Your payment proof and registration details have been submitted and are pending coordinator verification.</p>
                   )}
                 </div>
               </div>

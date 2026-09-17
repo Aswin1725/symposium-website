@@ -157,7 +157,7 @@ Deno.serve(async (req: Request) => {
 
     const cleanPayMethod = pay.remarks
       ? pay.remarks.split("|")[0].trim()
-      : (fullReg.utr ? "ONLINE" : "NOT COLLECTED");
+      : (fullReg.utr && fullReg.utr !== "PAY_AT_EVENT" ? "ONLINE" : "UPI");
 
     let paymentProofUrl = "No Proof Uploaded";
     const proofMatch = pay.remarks?.match(/PROOF:([^\s]+)/);
@@ -175,7 +175,7 @@ Deno.serve(async (req: Request) => {
       "Amount Paid": fullReg.amount || 0,
       "Total Amount Paid": fullReg.amount || 0,
       "Payment Status": pay.payment_status || "PENDING",
-      "Registration Status": fullReg.registration_status || "ACCEPTED",
+      "Registration Status": fullReg.registration_status || "PENDING",
       "Payment Method": cleanPayMethod,
       "Collection Date/Time": pay.verified_at || pay.updated_at || "N/A",
       "UTR": fullReg.utr || pay.utr_number || "N/A",

@@ -97,4 +97,6 @@ export type Registration = {
   paymentMethod?: string;       // "CASH" | "ONLINE" | "NOT COLLECTED"
   paymentProofUrl?: string;     // Signed URL for viewing payment proof
   paymentProofPath?: string | null;
+  verifiedAt?: string | null;
+  verifiedBy?: string | null;
 };

@@ -1,10 +1,6 @@
 import { useState } from "react";
-import { UserCog, Users, ArrowLeft, LogIn, AlertTriangle } from "lucide-react";
-import {
-  authenticateAdmin,
-  authenticateCoordinator,
-  type Session,
-} from "@/lib/auth";
+import { UserCog, Users, ArrowLeft, LogIn, AlertTriangle, Loader2 } from "lucide-react";
+import { loginUser, type Session } from "@/lib/auth";
 
 type Mode = "select" | "admin" | "coordinator";
 
@@ -13,33 +9,61 @@ const inputClass =
 const labelClass =
   "mb-1 block font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)]";
 
-export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
-  const [mode, setMode] = useState<Mode>("select");
-  const [username, setUsername] = useState("");
+export function Login({
+  initialMode = "select",
+  onLogin,
+  onBack,
+}: {
+  initialMode?: Mode;
+  onLogin: (s: Session) => void;
+  onBack?: () => void;
+}) {
+  const [mode, setMode] = useState<Mode>(initialMode);
+  const [loginInput, setLoginInput] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const reset = () => {
-    setUsername("");
+    setLoginInput("");
     setPassword("");
     setError("");
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === "admin") {
-      if (authenticateAdmin(username, password)) {
-        onLogin({ role: "admin" });
-      } else {
-        setError("Invalid admin username or password.");
+    if (!loginInput.trim() || !password) {
+      setError("Please enter both username/email and password.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await loginUser(loginInput, password);
+      if (!res.success || !res.session) {
+        setError(res.error || "Invalid username/email or password.");
+        return;
       }
-    } else if (mode === "coordinator") {
-      const session = authenticateCoordinator(username, password);
-      if (session) {
-        onLogin(session);
-      } else {
-        setError("Invalid coordinator username or password.");
+
+      // Check if logged in role matches the expected mode if explicitly selected
+      if (mode === "admin" && res.session.user.role !== "admin") {
+        setError("Access denied: You do not have Admin privileges.");
+        return;
       }
+
+      if (mode === "coordinator" && res.session.user.role !== "coordinator") {
+        setError("Access denied: You do not have Coordinator privileges.");
+        return;
+      }
+
+      onLogin(res.session);
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError("Failed to communicate with authentication server.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,7 +82,11 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
             NEXTRON-2026
           </p>
           <h2 className="mt-3 font-display text-3xl font-bold uppercase tracking-tight text-[var(--color-ink)]">
-            Login
+            {mode === "admin"
+              ? "Admin Login"
+              : mode === "coordinator"
+              ? "Coordinator Login"
+              : "Portal Login"}
           </h2>
           <div className="mx-auto mt-3 h-1 w-14 rounded-full bg-[var(--color-electric)]" />
         </div>
@@ -81,7 +109,7 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
                   Admin
                 </span>
                 <span className="text-sm text-slate-500">
-                  Manage all events &amp; registrations
+                  Manage all events &amp; coordinators
                 </span>
               </span>
             </button>
@@ -102,10 +130,22 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
                   Coordinator
                 </span>
                 <span className="text-sm text-slate-500">
-                  View your event registrations
+                  Verify assigned event registrations
                 </span>
               </span>
             </button>
+
+            {onBack && (
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500 hover:text-[var(--color-electric)]"
+                >
+                  <ArrowLeft className="size-3.5" /> Back to Home
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -119,23 +159,21 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
               }}
               className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-[var(--color-electric)] hover:underline"
             >
-              <ArrowLeft className="size-3.5" /> Back
+              <ArrowLeft className="size-3.5" /> Back to Role Selection
             </button>
 
-            <h3 className="font-display text-xl font-bold text-[var(--color-ink)]">
-              {mode === "admin" ? "Admin Login" : "Coordinator Login"}
-            </h3>
-
             <div>
-              <label className={labelClass} htmlFor="username">
-                Username
+              <label className={labelClass} htmlFor="loginInput">
+                Email or Username
               </label>
               <input
-                id="username"
+                id="loginInput"
+                type="text"
                 required
                 autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={loginInput}
+                onChange={(e) => setLoginInput(e.target.value)}
+                placeholder={mode === "admin" ? "admin@nextron.com" : "coordinator email"}
                 className={inputClass}
               />
             </div>
@@ -150,6 +188,7 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
                 className={inputClass}
               />
             </div>
@@ -163,9 +202,18 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
 
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-electric)] px-7 py-3 font-display text-sm font-semibold uppercase tracking-widest text-white transition-all hover:bg-[var(--color-electric-bright)]"
+              disabled={loading}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-electric)] px-7 py-3 font-display text-sm font-semibold uppercase tracking-widest text-white transition-all hover:bg-[var(--color-electric-bright)] disabled:opacity-60"
             >
-              <LogIn className="size-4" /> Login
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Authenticating…
+                </>
+              ) : (
+                <>
+                  <LogIn className="size-4" /> Login
+                </>
+              )}
             </button>
           </form>
         )}

@@ -1,26 +1,38 @@
 import { useEffect, useState, useCallback } from "react";
-import { LogOut, Users, Inbox, Search, X, FileSpreadsheet } from "lucide-react";
+import { LogOut, Users, Inbox, Search, X, FileSpreadsheet, Layers } from "lucide-react";
 import {
-  getRegistrationsByEvent,
+  fetchScopedRegistrations,
   isPaymentVerified,
   type Registration,
 } from "@/lib/registrations";
 import { RegistrationCard, SearchResultCard, StatTile } from "@/components/dashboard-ui";
 import { exportEventToExcel } from "@/components/AdminDashboard";
+import type { Session } from "@/lib/auth";
 
 /* =========================================================
    COORDINATOR DASHBOARD
    ========================================================= */
 
 export function CoordinatorDashboard({
-  event,
-  name,
+  session,
+  event: fallbackEvent,
+  name: fallbackName,
+  token: fallbackToken,
   onLogout,
 }: {
-  event: string;
-  name: string;
+  session?: Session;
+  event?: string;
+  name?: string;
+  token?: string;
   onLogout: () => void;
 }) {
+  const token = session?.token || fallbackToken || "";
+  const name = session?.user?.name || fallbackName || "Coordinator";
+  const assignedEvents = session?.user?.assigned_events && session.user.assigned_events.length > 0
+    ? session.user.assigned_events
+    : (fallbackEvent ? [fallbackEvent] : []);
+
+  const [selectedEvent, setSelectedEvent] = useState<string>(assignedEvents[0] || "");
   const [regs, setRegs] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,8 +41,10 @@ export function CoordinatorDashboard({
   const [searchResult, setSearchResult] = useState<Registration | null | "notfound">(null);
 
   const fetchRegistrations = useCallback(async () => {
+    if (!token) return;
     try {
-      const data = await getRegistrationsByEvent(event);
+      setLoading(true);
+      const data = await fetchScopedRegistrations(token, selectedEvent || undefined);
       setRegs(data);
       // Update active search result if open
       setSearchResult((prev) => {
@@ -43,10 +57,9 @@ export function CoordinatorDashboard({
     } finally {
       setLoading(false);
     }
-  }, [event]);
+  }, [token, selectedEvent]);
 
   useEffect(() => {
-    setLoading(true);
     fetchRegistrations();
   }, [fetchRegistrations]);
 
@@ -61,12 +74,6 @@ export function CoordinatorDashboard({
       .reduce((s, r) => s + (r.amount || 0), 0),
     pendingRevenue: regs
       .filter((r) => !isPaymentVerified(r))
-      .reduce((s, r) => s + (r.amount || 0), 0),
-    cashRevenue: regs
-      .filter((r) => isPaymentVerified(r) && r.paymentMethod?.toUpperCase() === "CASH")
-      .reduce((s, r) => s + (r.amount || 0), 0),
-    onlineRevenue: regs
-      .filter((r) => isPaymentVerified(r) && r.paymentMethod?.toUpperCase() !== "CASH")
       .reduce((s, r) => s + (r.amount || 0), 0),
   };
 
@@ -90,17 +97,17 @@ export function CoordinatorDashboard({
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.4em] text-[var(--color-flame)]">
-              <Users className="size-4" /> Coordinator
+              <Users className="size-4" /> Coordinator Portal
             </p>
             <h2 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight text-[var(--color-ink)] sm:text-4xl">
-              {event}
+              {selectedEvent || "Assigned Events"}
             </h2>
-            <p className="mt-1 text-sm text-slate-500">{name}</p>
+            <p className="mt-1 text-sm text-slate-500">{name} ({session?.user?.email})</p>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => exportEventToExcel(event, regs)}
+              onClick={() => exportEventToExcel(selectedEvent || "Assigned Events", regs)}
               className="inline-flex items-center gap-2 rounded-full bg-[var(--color-electric)] px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-widest text-white shadow-sm transition-all hover:bg-[var(--color-electric-bright)]"
             >
               <FileSpreadsheet className="size-4" /> Export Excel
@@ -115,21 +122,42 @@ export function CoordinatorDashboard({
           </div>
         </div>
 
+        {/* Assigned Events Switcher if more than one */}
+        {assignedEvents.length > 1 && (
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 font-display text-xs font-semibold uppercase tracking-wider text-slate-500 mr-1">
+              <Layers className="size-3.5" /> Events:
+            </span>
+            {assignedEvents.map((ev) => (
+              <button
+                key={ev}
+                type="button"
+                onClick={() => setSelectedEvent(ev)}
+                className={`rounded-lg px-3.5 py-1.5 font-display text-xs font-semibold uppercase tracking-wider transition-all ${
+                  selectedEvent === ev
+                    ? "bg-[var(--color-electric)] text-white shadow-sm"
+                    : "border border-[var(--color-electric)]/20 bg-white text-[var(--color-ink)] hover:border-[var(--color-electric)]"
+                }`}
+              >
+                {ev}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Team & Member Stats */}
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile label="Registered Teams" value={stats.total} tone="blue" />
           <StatTile label="Total Members" value={stats.members} />
           <StatTile label="Payment Pending" value={stats.payPending} tone="amber" />
-          <StatTile label="Payment Collected" value={stats.payVerified} tone="green" />
+          <StatTile label="Accepted / Verified" value={stats.payVerified} tone="green" />
         </div>
 
         {/* Collection Summary Revenue */}
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatTile label="Total Expected" value={`₹${stats.expectedRevenue}`} />
-          <StatTile label="Total Collected" value={`₹${stats.collectedRevenue}`} tone="green" />
+          <StatTile label="Verified Revenue" value={`₹${stats.collectedRevenue}`} tone="green" />
           <StatTile label="Pending Revenue" value={`₹${stats.pendingRevenue}`} tone="amber" />
-          <StatTile label="Cash Collected" value={`₹${stats.cashRevenue}`} tone="green" />
-          <StatTile label="Online Collected" value={`₹${stats.onlineRevenue}`} tone="blue" />
         </div>
 
         {/* Search */}
@@ -173,14 +201,15 @@ export function CoordinatorDashboard({
 
           {searchResult === "notfound" && (
             <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-              No registration found for "{searchQuery.trim().toUpperCase()}".
+              No registration found for "{searchQuery.trim().toUpperCase()}" in your assigned events.
             </p>
           )}
 
           {searchResult && searchResult !== "notfound" && (
             <SearchResultCard
               reg={searchResult}
-              onPaymentCollected={fetchRegistrations}
+              token={token}
+              onStatusUpdated={fetchRegistrations}
               collectorName={name}
             />
           )}
@@ -189,12 +218,14 @@ export function CoordinatorDashboard({
         {/* Registrations list */}
         <div className="mt-6 space-y-4">
           {loading ? (
-            <p className="text-sm text-slate-400">Loading registrations…</p>
+            <div className="rounded-2xl border border-[var(--color-electric)]/15 bg-white py-16 text-center">
+              <p className="text-sm text-slate-400">Loading registrations…</p>
+            </div>
           ) : regs.length === 0 ? (
             <div className="flex flex-col items-center rounded-2xl border border-dashed border-[var(--color-electric)]/25 bg-white py-16 text-center">
               <Inbox className="size-10 text-slate-300" />
               <p className="mt-3 text-sm text-slate-500">
-                No registrations for {event} yet.
+                No registrations for {selectedEvent || "assigned events"} yet.
               </p>
             </div>
           ) : (
@@ -202,7 +233,8 @@ export function CoordinatorDashboard({
               <RegistrationCard
                 key={r.id}
                 reg={r}
-                onPaymentCollected={fetchRegistrations}
+                token={token}
+                onStatusUpdated={fetchRegistrations}
                 collectorName={name}
               />
             ))

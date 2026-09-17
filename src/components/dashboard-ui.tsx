@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import {
   isPaymentVerified,
-  collectPayment,
+  verifyPaymentStatus,
   type Registration,
   type RegStatus,
 } from "@/lib/registrations";
@@ -90,72 +90,217 @@ export function StatTile({
 
 export function PaymentActions({
   reg,
+  token,
+  onStatusUpdated,
   onPaymentCollected,
   collectorName,
 }: {
   reg: Registration;
+  token?: string;
+  onStatusUpdated?: () => void;
   onPaymentCollected?: () => void;
   collectorName?: string;
 }) {
-  const [loading, setLoading] = useState<"CASH" | "ONLINE" | null>(null);
-  const isPaid = isPaymentVerified(reg);
+  const [pendingAction, setPendingAction] = useState<"ACCEPT" | "REJECT" | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
 
-  const handleCollect = async (method: "CASH" | "ONLINE") => {
-    const confirmMsg = `Confirm payment of ₹${reg.amount} received via ${method === "CASH" ? "Cash" : "Online"} for ${reg.teamName} (${reg.registration_number})?`;
-    if (!window.confirm(confirmMsg)) return;
+  const isVerified = reg.paymentStatus?.toUpperCase() === "VERIFIED";
+  const isRejected = reg.paymentStatus?.toUpperCase() === "FAILED";
 
-    setLoading(method);
+  const handleConfirm = async () => {
+    if (!pendingAction) return;
+    if (!token) {
+      setActionError("Session token missing. Please log in again.");
+      return;
+    }
+
+    setLoading(true);
+    setActionError("");
     try {
-      await collectPayment(reg.id, method, collectorName, reg.amount);
-      alert(`Payment of ₹${reg.amount} recorded as ${method} for ${reg.registration_number}`);
-      if (onPaymentCollected) {
+      const res = await verifyPaymentStatus(token, reg.id, pendingAction);
+      if (!res.success) {
+        setActionError(res.error || "Failed to update status.");
+        return;
+      }
+      setPendingAction(null);
+      if (onStatusUpdated) {
+        onStatusUpdated();
+      } else if (onPaymentCollected) {
         onPaymentCollected();
       }
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : "Failed to record payment.");
+      setActionError(err instanceof Error ? err.message : "Failed to update status.");
     } finally {
-      setLoading(null);
+      setLoading(false);
     }
   };
 
-  if (isPaid) {
-    return (
-      <div className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-        <CheckCircle2 className="size-4 text-emerald-600" />
-        <span>Paid via {reg.paymentMethod || "PAID"}</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        disabled={loading !== null}
-        onClick={() => handleCollect("CASH")}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <span>💵</span> {loading === "CASH" ? "Recording…" : "Cash"}
-      </button>
-      <button
-        type="button"
-        disabled={loading !== null}
-        onClick={() => handleCollect("ONLINE")}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--color-electric)] px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-[var(--color-electric-bright)] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <span>📱</span> {loading === "ONLINE" ? "Recording…" : "Online"}
-      </button>
-    </div>
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        {isVerified ? (
+          <>
+            <div className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+              <CheckCircle2 className="size-4 text-emerald-600" />
+              <span>Accepted {reg.verifiedBy ? `by ${reg.verifiedBy}` : ""}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setActionError("");
+                setPendingAction("REJECT");
+              }}
+              title="Reject payment"
+              className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-red-600 shadow-sm transition-all hover:bg-red-50 active:scale-95"
+            >
+              <XCircle className="size-3.5" /> Reject
+            </button>
+          </>
+        ) : isRejected ? (
+          <>
+            <div className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700">
+              <XCircle className="size-4 text-red-600" />
+              <span>Rejected {reg.verifiedBy ? `by ${reg.verifiedBy}` : ""}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setActionError("");
+                setPendingAction("ACCEPT");
+              }}
+              title="Accept payment"
+              className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
+            >
+              <CheckCircle2 className="size-3.5" /> Accept
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setActionError("");
+                setPendingAction("ACCEPT");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
+            >
+              <CheckCircle2 className="size-3.5" /> Accept
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActionError("");
+                setPendingAction("REJECT");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-3.5 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-red-600 shadow-sm transition-all hover:bg-red-50 active:scale-95"
+            >
+              <XCircle className="size-3.5" /> Reject
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Confirmation Dialog */}
+      {pendingAction && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--color-ink)]/70 p-4 backdrop-blur-sm"
+          onClick={() => !loading && setPendingAction(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="font-display text-lg font-bold uppercase tracking-wide text-[var(--color-ink)]">
+                Confirm {pendingAction === "ACCEPT" ? "Acceptance" : "Rejection"}
+              </h3>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setPendingAction(null)}
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-100"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="my-4 space-y-2.5 text-sm">
+              <p className="text-slate-600">
+                Please verify the registration details before proceeding:
+              </p>
+              <div className="rounded-xl border border-slate-100 bg-[var(--color-paper)] p-3.5 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Registration Number:</span>
+                  <span className="font-mono font-bold text-[var(--color-electric)]">{reg.registration_number}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Team / Event:</span>
+                  <span className="font-medium text-[var(--color-ink)]">{reg.teamName} ({reg.event})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Amount:</span>
+                  <span className="font-bold text-[var(--color-ink)]">₹{reg.amount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">UTR / Transaction ID:</span>
+                  <span className="font-mono font-medium text-[var(--color-ink)]">{reg.utr || "PAY_AT_EVENT"}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200 pt-2 font-semibold">
+                  <span className="text-slate-500">Action:</span>
+                  <span className={pendingAction === "ACCEPT" ? "text-emerald-600" : "text-red-600"}>
+                    {pendingAction === "ACCEPT" ? "ACCEPT (VERIFY PAYMENT)" : "REJECT (FAIL PAYMENT)"}
+                  </span>
+                </div>
+              </div>
+
+              {actionError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-2.5 text-xs text-red-600">
+                  {actionError}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setPendingAction(null)}
+                className="rounded-lg border border-slate-200 px-4 py-2 font-display text-xs font-semibold uppercase tracking-wider text-slate-600 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleConfirm}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-5 py-2 font-display text-xs font-semibold uppercase tracking-wider text-white shadow-sm disabled:opacity-50 ${
+                  pendingAction === "ACCEPT"
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {loading ? "Processing…" : `Confirm ${pendingAction}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
 export function RegistrationCard({
   reg,
+  token,
+  onStatusUpdated,
   onPaymentCollected,
   collectorName,
 }: {
   reg: Registration;
+  token?: string;
+  onStatusUpdated?: () => void;
   onPaymentCollected?: () => void;
   collectorName?: string;
 }) {
@@ -165,7 +310,7 @@ export function RegistrationCard({
   } | null>(null);
 
   const isPaid = isPaymentVerified(reg);
-  const payMethod = reg.paymentMethod || (isPaid ? "ONLINE" : "NOT COLLECTED");
+  const payMethod = reg.paymentMethod?.split("|")[0]?.trim() || "UPI";
 
   return (
     <div className="rounded-2xl border border-[var(--color-electric)]/15 bg-white p-5 shadow-sm">
@@ -192,7 +337,7 @@ export function RegistrationCard({
               isPaid ? "text-emerald-600" : "text-amber-600"
             }`}
           >
-            Payment {isPaid ? "Received" : "Pending"}
+            Payment {isPaid ? "Verified" : "Pending"}
           </span>
         </div>
       </div>
@@ -242,7 +387,7 @@ export function RegistrationCard({
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-electric)]/10 pt-4">
         <div className="flex flex-col gap-0.5">
           <span className="font-display text-xs uppercase tracking-widest text-slate-400">
-            {isPaid ? "Amount Paid" : "Amount to Collect"}
+            {isPaid ? "Amount Paid" : "Amount to Verify"}
           </span>
           <span className="font-display text-lg font-bold text-[var(--color-ink)]">
             ₹{reg.amount}
@@ -262,7 +407,7 @@ export function RegistrationCard({
             {reg.paymentProofUrl && (
               <button
                 type="button"
-                onClick={() => setZoom({ url: reg.paymentProofUrl!, label: `Payment Proof — ${reg.teamName} (${reg.registration_number})` })}
+                onClick={() => setZoom({ src: reg.paymentProofUrl!, label: `Payment Proof — ${reg.teamName} (${reg.registration_number})` })}
                 className="mt-0.5 inline-flex items-center text-[11px] font-semibold text-[var(--color-electric)] hover:underline"
               >
                 View Payment Proof ↗
@@ -271,6 +416,8 @@ export function RegistrationCard({
           </div>
           <PaymentActions
             reg={reg}
+            token={token}
+            onStatusUpdated={onStatusUpdated}
             onPaymentCollected={onPaymentCollected}
             collectorName={collectorName}
           />
@@ -314,16 +461,20 @@ export function RegistrationCard({
 
 export function SearchResultCard({
   reg,
+  token,
+  onStatusUpdated,
   onPaymentCollected,
   collectorName,
 }: {
   reg: Registration;
+  token?: string;
+  onStatusUpdated?: () => void;
   onPaymentCollected?: () => void;
   collectorName?: string;
 }) {
   const [zoom, setZoom] = useState<{ src: string; label: string } | null>(null);
   const isPaid = isPaymentVerified(reg);
-  const payMethod = reg.paymentMethod || (isPaid ? "ONLINE" : "NOT COLLECTED");
+  const payMethod = reg.paymentMethod?.split("|")[0]?.trim() || "UPI";
 
   return (
     <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--color-electric)]/15 bg-white shadow-sm">
@@ -413,15 +564,17 @@ export function SearchResultCard({
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
           <div className="text-sm">
             {isPaid ? (
-              <p className="font-medium text-emerald-600">✓ Payment has been collected and verified.</p>
+              <p className="font-medium text-emerald-600">✓ Payment has been verified.</p>
             ) : (
               <p className="font-medium text-amber-600">
-                ⚠ Payment not collected yet. Please collect ₹{reg.amount} at the desk.
+                ⚠ Payment pending coordinator verification.
               </p>
             )}
           </div>
           <PaymentActions
             reg={reg}
+            token={token}
+            onStatusUpdated={onStatusUpdated}
             onPaymentCollected={onPaymentCollected}
             collectorName={collectorName}
           />
