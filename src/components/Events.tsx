@@ -65,7 +65,7 @@ const events: EventItem[] = [
       { name: "V. Lavanya" },
       { name: "M.R. Nikhil", phone: "7013272289" },
       { name: "Chithra" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/LWRVQqJRZVdLuRdQnPefPj",
   },
   {
@@ -92,7 +92,7 @@ const events: EventItem[] = [
       { name: "G. Neeraj Kumar", phone: "9392651621" },
       { name: "Naveen Acharya", phone: "9398064215" },
       { name: "B.S. Rukmini" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/Em0lS2NEpF32aGaTjcTKIJ",
   },
   {
@@ -118,7 +118,7 @@ const events: EventItem[] = [
       { name: "A.R.E. Lakshmi Narayana", phone: "8247749668" },
       { name: "Balaji", phone: "8500619223" },
       { name: "Uma Sri" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/H1jLQLR68iy4UprRliG01P",
   },
   {
@@ -142,7 +142,7 @@ const events: EventItem[] = [
       { name: "A. Venkatesh", phone: "9100309531" },
       { name: "B.C. Ashwini" },
       { name: "Basi Reddy", phone: "9502347515" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/JNDEXqg3vmCKuJhMwqFMyx",
   },
   {
@@ -167,7 +167,7 @@ const events: EventItem[] = [
       { name: "T. Raj Kumar", phone: "9963901941" },
       { name: "Mamatha" },
       { name: "M. Vamsi", phone: "9989438017" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/HAhhjVkhvMnEBSO8okKRtX",
   },
   {
@@ -194,7 +194,7 @@ const events: EventItem[] = [
       { name: "M.S. Jotheswaran", phone: "6304045864" },
       { name: "Kowsik Naidu", phone: "9398603417" },
       { name: "Deekshitha" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/EG9BaYK2KQB2CpVhHNCMxV",
   },
   {
@@ -220,7 +220,7 @@ const events: EventItem[] = [
       { name: "K.H. Nunit h Kumar Rao", phone: "9985835599" },
       { name: "Varshitha" },
       { name: "S. Karthik", phone: "9490436037" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/Gk6wJULGw1LG1yWR7LZe3U",
   },
   {
@@ -246,7 +246,7 @@ const events: EventItem[] = [
       { name: "A. Aravind", phone: "6303383007" },
       { name: "Manyatha" },
       { name: "Dinesh", phone: "9963259030" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/C8lT707eQ8f1xAAkUTQMqt",
   },
   {
@@ -272,7 +272,7 @@ const events: EventItem[] = [
       { name: "B. Shirisha" },
       { name: "Theertha" },
       { name: "S. Bhanu Prakash", phone: "8977147735" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/E8M2J1kZkzjCLmOg8zT4Ek",
   },
   {
@@ -298,7 +298,7 @@ const events: EventItem[] = [
       { name: "Deva Raj", phone: "8919809096" },
       { name: "Pavani" },
       { name: "Mohan Sai", phone: "9010096921" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/Kjf8koh1wf93SBSB3kIKSv",
   },
   {
@@ -323,7 +323,7 @@ const events: EventItem[] = [
       { name: "B. Dinesh", phone: "6281668510" },
       { name: "Tahir Basha", phone: "9533148672" },
       { name: "Dhamodhar", phone: "9606349783" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/EdDDnL5R9UuJRK9D5Nz1bq",
   },
   {
@@ -349,7 +349,7 @@ const events: EventItem[] = [
       { name: "R. Spandana" },
       { name: "Bhargavi" },
       { name: "Sravanth", phone: "7981946622" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/GQpaGQXEpSCDZDLZ8SmIwi",
   },
   {
@@ -375,7 +375,7 @@ const events: EventItem[] = [
       { name: "B. Rakshitha" },
       { name: "Rajashekar", phone: "8341493814" },
       { name: "Soundarya" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/Dc7NGw2WimP7EzVYUazrdF",
   },
   {
@@ -401,7 +401,7 @@ const events: EventItem[] = [
       { name: "P. Asritha" },
       { name: "Aneesha" },
       { name: "Sandeep", phone: "8639510076" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/Kah2b8e1t18IVW3dfOEGVo",
   },
   {
@@ -427,7 +427,7 @@ const events: EventItem[] = [
       { name: "R. Mahesh Babu", phone: "7386997761" },
       { name: "Dharani" },
       { name: "Shanvi" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/GTQ8IHRq6sN15kkniOh4SC",
   },
   {
@@ -453,7 +453,7 @@ const events: EventItem[] = [
       { name: "S. Bhagya Lakshmi" },
       { name: "Tejaswini" },
       { name: "Madhu" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/CvpaACthmxeBgssNCPaunh",
   },
   {
@@ -479,7 +479,7 @@ const events: EventItem[] = [
       { name: "E.C. Manasa" },
       { name: "Sushmitha" },
       { name: "Surya Kranthi", phone: "9014602740" }
-  ],
+    ],
     whatsapp: "https://chat.whatsapp.com/IWiCG0W0HE91Rw6GCbQLUp",
   },
 ];
@@ -524,11 +524,20 @@ function minMembersOf(teamSize: string) {
 function RegistrationForm({ event }: { event: EventItem }) {
   const maxMembers = maxMembersOf(event.teamSize);
   const minMembers = minMembersOf(event.teamSize);
+  const initialMin = Math.max(1, minMembers);
+
   const [teamName, setTeamName] = useState("");
   const [collegeName, setCollegeName] = useState("");
-  const [members, setMembers] = useState<Member[]>([
-    { name: "", phone: "", email: "", idCardFile: null, idCard: "", idCardName: "" },
-  ]);
+  const [members, setMembers] = useState<Member[]>(() =>
+    Array.from({ length: initialMin }, () => ({
+      name: "",
+      phone: "",
+      email: "",
+      idCardFile: null,
+      idCard: "",
+      idCardName: "",
+    })),
+  );
   const [submitted, setSubmitted] = useState(false);
   const [submittedUtr, setSubmittedUtr] = useState("");
   const [regId, setRegId] = useState("");
@@ -544,6 +553,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
   const [paymentProofName, setPaymentProofName] = useState("");
   const [paymentProofSize, setPaymentProofSize] = useState("");
   const [compressingProof, setCompressingProof] = useState(false);
+  const [compressingMemberIdx, setCompressingMemberIdx] = useState<number | null>(null);
   const objectUrls = useRef<string[]>([]);
 
   const compressImageTo50KB = async (file: File): Promise<File> => {
@@ -556,45 +566,53 @@ function RegistrationForm({ event }: { event: EventItem }) {
         const img = new Image();
         img.src = event.target?.result as string;
         img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-          const maxDim = 900;
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
+          const runCompression = (maxDim: number) => {
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
             }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(img, 0, 0, width, height);
+            canvas.width = Math.max(width, 1);
+            canvas.height = Math.max(height, 1);
+            const ctx = canvas.getContext("2d");
+            ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          let quality = 0.75;
-          const tryCompress = (q: number) => {
-            canvas.toBlob(
-              (blob) => {
-                if (blob && (blob.size <= 50 * 1024 || q <= 0.15)) {
-                  const compFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
-                    type: "image/jpeg",
-                    lastModified: Date.now(),
-                  });
-                  resolve(compFile);
-                } else if (q > 0.15) {
-                  tryCompress(q - 0.15);
-                } else {
-                  resolve(file);
-                }
-              },
-              "image/jpeg",
-              q,
-            );
+            const tryQuality = (q: number) => {
+              canvas.toBlob(
+                (blob) => {
+                  if (blob && blob.size <= 50 * 1024) {
+                    const compFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                      type: "image/jpeg",
+                      lastModified: Date.now(),
+                    });
+                    resolve(compFile);
+                  } else if (q > 0.2) {
+                    tryQuality(q - 0.15);
+                  } else if (maxDim > 400) {
+                    runCompression(Math.round(maxDim * 0.7));
+                  } else {
+                    const finalBlob = blob || file;
+                    const compFile = new File([finalBlob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                      type: "image/jpeg",
+                      lastModified: Date.now(),
+                    });
+                    resolve(compFile);
+                  }
+                },
+                "image/jpeg",
+                q,
+              );
+            };
+            tryQuality(0.75);
           };
-          tryCompress(quality);
+          runCompression(900);
         };
         img.onerror = () => resolve(file);
       };
@@ -610,32 +628,37 @@ function RegistrationForm({ event }: { event: EventItem }) {
     const validExtensions = ["jpg", "jpeg", "png", "webp"];
     const fileExt = file.name.split(".").pop()?.toLowerCase() || "";
     const isValidType =
-      file.type.startsWith("image/") &&
-      (validExtensions.includes(fileExt) ||
-        file.type.includes("jpeg") ||
-        file.type.includes("png") ||
-        file.type.includes("webp"));
+      file.type.startsWith("image/") ||
+      validExtensions.includes(fileExt);
 
     if (!isValidType) {
       setSubmitError("Payment proof must be an image file (JPG, JPEG, PNG, or WEBP).");
       return;
     }
 
-    // Validate size limit: 50 KB max (51,200 bytes)
-    const MAX_SIZE_BYTES = 50 * 1024;
-    if (file.size > MAX_SIZE_BYTES) {
-      setSubmitError(
-        `Payment proof file size (${(file.size / 1024).toFixed(1)} KB) exceeds the 50 KB limit. Please upload an image 50 KB or smaller.`
-      );
-      return;
+    try {
+      setCompressingProof(true);
+      let finalFile = file;
+      if (file.size > 50 * 1024) {
+        finalFile = await compressImageTo50KB(file);
+      }
+      const previewUrl = URL.createObjectURL(finalFile);
+      objectUrls.current.push(previewUrl);
+      setPaymentProofFile(finalFile);
+      setPaymentProofPreview(previewUrl);
+      setPaymentProofName(finalFile.name);
+      setPaymentProofSize(`${(finalFile.size / 1024).toFixed(1)} KB`);
+    } catch (err) {
+      console.warn("Payment proof compression warning:", err);
+      const previewUrl = URL.createObjectURL(file);
+      objectUrls.current.push(previewUrl);
+      setPaymentProofFile(file);
+      setPaymentProofPreview(previewUrl);
+      setPaymentProofName(file.name);
+      setPaymentProofSize(`${(file.size / 1024).toFixed(1)} KB`);
+    } finally {
+      setCompressingProof(false);
     }
-
-    const previewUrl = URL.createObjectURL(file);
-    objectUrls.current.push(previewUrl);
-    setPaymentProofFile(file);
-    setPaymentProofPreview(previewUrl);
-    setPaymentProofName(file.name);
-    setPaymentProofSize(`${(file.size / 1024).toFixed(1)} KB`);
   };
 
   useEffect(() => {
@@ -647,7 +670,25 @@ function RegistrationForm({ event }: { event: EventItem }) {
       .limit(1)
       .single()
       .then(({ data }) => {
-        if (data) setPricing(data);
+        if (data) {
+          setPricing(data);
+          const reqMin = Number(data.min_members) || minMembers;
+          setMembers((prev) => {
+            if (prev.length < reqMin) {
+              const diff = reqMin - prev.length;
+              const extra = Array.from({ length: diff }, () => ({
+                name: "",
+                phone: "",
+                email: "",
+                idCardFile: null,
+                idCard: "",
+                idCardName: "",
+              }));
+              return [...prev, ...extra];
+            }
+            return prev;
+          });
+        }
       });
   }, [event.name]);
 
@@ -680,25 +721,68 @@ function RegistrationForm({ event }: { event: EventItem }) {
     ]);
   };
 
-  const uploadIdCardLocal = (i: number, file?: File) => {
+  const uploadIdCardLocal = async (i: number, file?: File) => {
     if (!file) return;
-    if (file.size > 50 * 1024) {
-      setSubmitError(
-        `File size must be below 50 KB. Selected file "${file.name}" is ${(file.size / 1024).toFixed(1)} KB. Please choose a smaller image.`,
-      );
+    setSubmitError(null);
+
+    // Validate MIME type & extension
+    const validExtensions = ["jpg", "jpeg", "png", "webp"];
+    const fileExt = file.name.split(".").pop()?.toLowerCase() || "";
+    const isValidType =
+      file.type.startsWith("image/") ||
+      validExtensions.includes(fileExt);
+
+    if (!isValidType) {
+      setSubmitError("ID card must be an image file (JPG, JPEG, PNG, or WEBP).");
       return;
     }
-    setSubmitError(null);
-    const objectUrl = URL.createObjectURL(file);
-    objectUrls.current.push(objectUrl);
-    setMembers((prev) =>
-      prev.map((m, idx) =>
-        idx === i ? { ...m, idCardFile: file, idCard: objectUrl, idCardName: file.name } : m,
-      ),
-    );
+
+    try {
+      setCompressingMemberIdx(i);
+      let finalFile = file;
+      if (file.size > 50 * 1024) {
+        finalFile = await compressImageTo50KB(file);
+      }
+      const objectUrl = URL.createObjectURL(finalFile);
+      objectUrls.current.push(objectUrl);
+      setMembers((prev) =>
+        prev.map((m, idx) =>
+          idx === i
+            ? {
+                ...m,
+                idCardFile: finalFile,
+                idCard: objectUrl,
+                idCardName: `${finalFile.name} (${(finalFile.size / 1024).toFixed(1)} KB)`,
+              }
+            : m,
+        ),
+      );
+    } catch (err) {
+      console.warn("ID card compression warning:", err);
+      const objectUrl = URL.createObjectURL(file);
+      objectUrls.current.push(objectUrl);
+      setMembers((prev) =>
+        prev.map((m, idx) =>
+          idx === i
+            ? {
+                ...m,
+                idCardFile: file,
+                idCard: objectUrl,
+                idCardName: file.name,
+              }
+            : m,
+        ),
+      );
+    } finally {
+      setCompressingMemberIdx(null);
+    }
   };
 
   const removeMember = (i: number) => {
+    if (members.length <= effectiveMin) {
+      setLimitMsg(`At least ${effectiveMin} member(s) required for this event.`);
+      return;
+    }
     setLimitMsg("");
     setMembers((prev) => prev.filter((_, idx) => idx !== i));
   };
@@ -855,11 +939,10 @@ function RegistrationForm({ event }: { event: EventItem }) {
           {event.coordinators.map((c) => (
             <div
               key={c.name}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
-                (c as any).staff
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${(c as any).staff
                   ? "bg-[var(--color-electric)]/8 ring-1 ring-[var(--color-electric)]/20"
                   : "bg-white"
-              }`}
+                }`}
             >
               {(c as any).staff ? (
                 <GraduationCap className="size-4 shrink-0 text-[var(--color-electric)]" />
@@ -954,8 +1037,9 @@ function RegistrationForm({ event }: { event: EventItem }) {
                 <button
                   type="button"
                   onClick={() => removeMember(i)}
-                  disabled={members.length === 1 || loading}
+                  disabled={members.length <= effectiveMin || loading}
                   aria-label="Remove member"
+                  title={members.length <= effectiveMin ? `Minimum ${effectiveMin} member(s) required` : "Remove member"}
                   className="inline-flex items-center justify-center rounded-lg p-1 text-slate-400 transition-colors hover:text-[var(--color-flame)] disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   <Trash2 className="size-4" />
@@ -991,13 +1075,21 @@ function RegistrationForm({ event }: { event: EventItem }) {
               </div>
               <div className="mt-2 flex items-center gap-3">
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-[var(--color-electric)]/40 bg-[var(--color-paper)] px-3 py-2 text-xs font-semibold text-[var(--color-electric)] transition-colors hover:bg-[var(--color-electric)]/10">
-                  <Upload className="size-4" />
-                  {m.idCard ? "Change ID Card" : "Upload College ID Card"}
+                  {compressingMemberIdx === i ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Upload className="size-4" />
+                  )}
+                  {compressingMemberIdx === i
+                    ? "Optimizing..."
+                    : m.idCard
+                      ? "Change ID Card"
+                      : "Upload College ID Card"}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
                     required={!m.idCard}
-                    disabled={loading}
+                    disabled={loading || compressingMemberIdx === i}
                     onChange={(e) => uploadIdCardLocal(i, e.target.files?.[0])}
                     className="hidden"
                   />
@@ -1020,7 +1112,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
                 )}
               </div>
               <p className="mt-1 text-[11px] text-slate-400">
-                File size must be <span className="font-semibold text-slate-500">below 50 KB</span> (JPG / PNG)
+                Auto-compressed if over 50 KB (JPG / PNG)
               </p>
             </div>
           ))}
@@ -1037,7 +1129,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
           <div>
             <p className="font-display text-3xl font-bold tracking-tight text-[var(--color-ink)]">
               {totalAmount !== null ? (
-                <>&#8377;{totalAmount}</>  
+                <>&#8377;{totalAmount}</>
               ) : (
                 <span className="text-xl text-slate-400">Loading...</span>
               )}
@@ -1235,7 +1327,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
               </div>
 
               <p className="mt-1 text-[11px] text-slate-400">
-                File size must be <span className="font-semibold text-slate-500">below 50 KB</span> (JPG / PNG / WEBP screenshot with amount &amp; UPI visible)
+                Auto-compressed if over 50 KB (JPG / PNG / WEBP screenshot with amount &amp; UPI visible)
               </p>
             </div>
           </div>
@@ -1251,7 +1343,7 @@ function RegistrationForm({ event }: { event: EventItem }) {
 
       <button
         type="submit"
-        disabled={loading || totalAmount === null || compressingProof}
+        disabled={loading || totalAmount === null || compressingProof || compressingMemberIdx !== null}
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-electric)] px-7 py-3.5 font-display text-sm font-semibold uppercase tracking-widest text-white transition-all hover:bg-[var(--color-electric-bright)] hover:shadow-[0_10px_30px_rgba(18,87,184,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? (
@@ -1444,11 +1536,10 @@ export function Events() {
               key={f.key}
               type="button"
               onClick={() => setFilter(f.key)}
-              className={`rounded-full px-5 py-2 font-display text-sm font-semibold uppercase tracking-widest transition-colors ${
-                filter === f.key
+              className={`rounded-full px-5 py-2 font-display text-sm font-semibold uppercase tracking-widest transition-colors ${filter === f.key
                   ? "bg-[var(--color-electric)] text-white"
                   : "border border-[var(--color-electric)]/25 bg-white text-[var(--color-ink-soft)] hover:border-[var(--color-electric)] hover:text-[var(--color-electric)]"
-              }`}
+                }`}
             >
               {f.label}
             </button>

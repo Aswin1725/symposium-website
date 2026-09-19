@@ -3,20 +3,22 @@
 -- Bucket: payment-proofs (Private, 50 KB limit)
 -- ===========================================================================
 
--- 1. Storage Policy: Students can upload payment proof during registration
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies 
-    WHERE tablename = 'objects' AND policyname = 'Students can upload payment proof'
-  ) THEN
-    CREATE POLICY "Students can upload payment proof"
-    ON storage.objects
-    FOR INSERT
-    TO anon, authenticated
-    WITH CHECK (bucket_id = 'payment-proofs');
-  END IF;
-END $$;
+-- 1. Storage Policies: Students can upload, update (replace) and view payment proofs
+DROP POLICY IF EXISTS "Students can upload payment proof" ON storage.objects;
+DROP POLICY IF EXISTS "Students can update payment proof" ON storage.objects;
+DROP POLICY IF EXISTS "Students can read payment proof" ON storage.objects;
+
+CREATE POLICY "Students can upload payment proof"
+ON storage.objects FOR INSERT TO anon, authenticated
+WITH CHECK (bucket_id = 'payment-proofs');
+
+CREATE POLICY "Students can update payment proof"
+ON storage.objects FOR UPDATE TO anon, authenticated
+USING (bucket_id = 'payment-proofs');
+
+CREATE POLICY "Students can read payment proof"
+ON storage.objects FOR SELECT TO anon, authenticated
+USING (bucket_id = 'payment-proofs');
 
 -- 2. Ensure payments table check constraint allows all verified and rejection statuses
 ALTER TABLE public.payments DROP CONSTRAINT IF EXISTS payments_payment_status_check;

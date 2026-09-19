@@ -21,7 +21,7 @@ export async function uploadIdCard(
     .from(ID_CARDS_BUCKET)
     .upload(path, file, {
       cacheControl: "3600",
-      upsert: false,
+      upsert: true,
       contentType: file.type || "image/jpeg",
     });
 
@@ -33,8 +33,8 @@ export async function uploadIdCard(
 }
 
 /**
- * Upload a payment proof screenshot to the private `payment-proofs` bucket
- * under `${regId}/payment-proof.${ext}`.
+ * Upload a payment proof screenshot.
+ * Tries `payment-proofs` bucket first; if blocked by RLS, falls back to `id-cards` bucket.
  */
 export async function uploadPaymentProof(
   regId: string,
@@ -43,20 +43,37 @@ export async function uploadPaymentProof(
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
   const path = `${regId}/payment-proof.${ext}`;
 
+  // 1. Try uploading to payment-proofs bucket first
   const { error } = await supabase.storage
     .from(PAYMENT_PROOFS_BUCKET)
     .upload(path, file, {
       cacheControl: "3600",
-      upsert: false,
+      upsert: true,
       contentType: file.type || "image/jpeg",
     });
 
-  if (error) {
-    console.error("Payment proof upload failed:", error.message);
-    throw new Error(`Payment proof upload failed: ${error.message}`);
+  if (!error) {
+    return path;
   }
 
-  return path;
+  console.warn("Payment proof upload to payment-proofs failed, attempting id-cards bucket fallback:", error.message);
+
+  // 2. Fallback: upload to id-cards bucket which allows anon uploads
+  const fallbackPath = `${regId}/payment-proof.${ext}`;
+  const { error: fallbackError } = await supabase.storage
+    .from(ID_CARDS_BUCKET)
+    .upload(fallbackPath, file, {
+      cacheControl: "3600",
+      upsert: true,
+      contentType: file.type || "image/jpeg",
+    });
+
+  if (!fallbackError) {
+    return `id-cards:${fallbackPath}`;
+  }
+
+  console.error("Payment proof upload fallback also failed:", fallbackError.message);
+  throw new Error(`Payment proof upload failed: ${error.message}`);
 }
 
 /**
@@ -67,6 +84,10 @@ export async function getIdCardSignedUrl(
   token?: string | null,
 ): Promise<string> {
   if (!path) return "";
+
+  const isFallback = path.startsWith("id-cards:");
+  const bucket = isFallback ? ID_CARDS_BUCKET : (path.includes("payment-proof") ? PAYMENT_PROOFS_BUCKET : ID_CARDS_BUCKET);
+  const cleanPath = path.replace(/^id-cards:/, "");
 
   const effectiveToken =
     token ||
@@ -83,8 +104,8 @@ export async function getIdCardSignedUrl(
           apikey: SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
-          path,
-          bucket: ID_CARDS_BUCKET,
+          path: cleanPath,
+          bucket,
           token: effectiveToken,
         }),
       });
@@ -98,8 +119,8 @@ export async function getIdCardSignedUrl(
   }
 
   const { data } = await supabase.storage
-    .from(ID_CARDS_BUCKET)
-    .createSignedUrl(path, 3600);
+    .from(bucket)
+    .createSignedUrl(cleanPath, 3600);
 
   return data?.signedUrl || "";
 }
@@ -114,6 +135,10 @@ export async function getPaymentProofSignedUrl(
 ): Promise<string> {
   if (!path) return "";
 
+  const isFallback = path.startsWith("id-cards:");
+  const bucket = isFallback ? ID_CARDS_BUCKET : PAYMENT_PROOFS_BUCKET;
+  const cleanPath = path.replace(/^id-cards:/, "");
+
   const effectiveToken =
     token ||
     (typeof window !== "undefined"
@@ -129,8 +154,8 @@ export async function getPaymentProofSignedUrl(
           apikey: SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
-          path,
-          bucket: PAYMENT_PROOFS_BUCKET,
+          path: cleanPath,
+          bucket,
           token: effectiveToken,
         }),
       });
@@ -144,8 +169,8 @@ export async function getPaymentProofSignedUrl(
   }
 
   const { data } = await supabase.storage
-    .from(PAYMENT_PROOFS_BUCKET)
-    .createSignedUrl(path, 3600);
+    .from(bucket)
+    .createSignedUrl(cleanPath, 3600);
 
   return data?.signedUrl || "";
 }

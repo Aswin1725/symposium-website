@@ -181,11 +181,7 @@ export async function registerDirectly(payload: {
   // 5. Upload payment proof if provided
   let paymentProofPath: string | null = null;
   if (payload.paymentProofFile) {
-    try {
-      paymentProofPath = await uploadPaymentProof(regId, payload.paymentProofFile);
-    } catch (proofErr) {
-      console.warn("Payment proof upload warning:", proofErr);
-    }
+    paymentProofPath = await uploadPaymentProof(regId, payload.paymentProofFile);
   }
 
   // 6. Insert members
