@@ -5,8 +5,26 @@ import {
   CheckCircle2,
   XCircle,
   Ticket,
+  CalendarDays,
 } from "lucide-react";
 import { findRegistration, isPaymentVerified, type Registration } from "@/lib/registrations";
+
+const TECHNICAL_EVENTS = [
+  "Paper Presentation",
+  "Project Expo",
+  "Code Debugging",
+  "Tech Quiz",
+  "Logo Design",
+  "Ideathon",
+  "Circuitrix",
+  "Web Design",
+  "Electro Charades",
+];
+
+function getEventDate(eventName: string): string {
+  const isTech = TECHNICAL_EVENTS.some((t) => t.toLowerCase() === eventName.toLowerCase());
+  return isTech ? "23rd September 2026 (Technical)" : "24th September 2026 (Non-Technical)";
+}
 
 type Result =
   | { kind: "idle" }
@@ -115,6 +133,13 @@ export function RegistrationStatus() {
                     <dt className="text-slate-500">Event</dt>
                     <dd className="text-right font-medium text-[var(--color-ink)]">
                       {result.reg.event}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between items-center gap-4">
+                    <dt className="text-slate-500">Event Date</dt>
+                    <dd className="inline-flex items-center gap-1 font-semibold text-[var(--color-electric)]">
+                      <CalendarDays className="size-3.5" />
+                      {getEventDate(result.reg.event)}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4">

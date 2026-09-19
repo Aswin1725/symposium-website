@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   ArrowRight,
   ScrollText,
+  CalendarDays,
   AlertTriangle,
   Upload,
   MessageCircle,
@@ -729,9 +730,27 @@ function RegistrationForm({ event }: { event: EventItem }) {
           </p>
         </div>
 
+        {/* Event Date badge on success */}
+        <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-electric)]/20 bg-white px-4 py-1.5 shadow-sm">
+          <CalendarDays className="size-4 text-[var(--color-electric)]" />
+          <span className="font-display text-xs font-bold uppercase tracking-wider text-[var(--color-ink)]">
+            Event Date:{" "}
+            <span className="text-[var(--color-electric)]">
+              {event.category === "Technical" ? "23rd September 2026" : "24th September 2026"}
+            </span>
+          </span>
+        </div>
+
         {/* Payment summary on success */}
         <div className="mt-4 w-full max-w-sm rounded-xl border border-[var(--color-electric)]/15 bg-[var(--color-paper)] px-6 py-4 text-left">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between items-center border-b border-slate-200/60 pb-2 text-sm">
+            <span className="text-slate-500">Event Date</span>
+            <span className="font-semibold text-[var(--color-electric)] flex items-center gap-1.5">
+              <CalendarDays className="size-3.5" />
+              {event.category === "Technical" ? "23rd September 2026" : "24th September 2026"}
+            </span>
+          </div>
+          <div className="mt-2 flex justify-between text-sm">
             <span className="text-slate-500">Payment</span>
             <span className="font-semibold text-amber-600">Submitted — Pending verification</span>
           </div>
@@ -1272,9 +1291,15 @@ function EventModal({
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 rounded-t-2xl border-b border-[var(--color-electric)]/12 bg-white px-6 py-5">
           <div>
-            <span className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--color-flame)]">
-              {event.category}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--color-flame)]">
+                {event.category}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-electric)]/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-[var(--color-electric)]">
+                <CalendarDays className="size-3" />
+                {event.category === "Technical" ? "23rd September 2026" : "24th September 2026"}
+              </span>
+            </div>
             <h3 className="font-display text-2xl font-bold text-[var(--color-ink)]">
               {event.name}
             </h3>
@@ -1363,10 +1388,16 @@ function EventCard({
         {event.name}
       </h3>
       <p className="mt-1 text-sm text-slate-500">{event.tagline}</p>
-      <span className="mt-5 inline-flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-electric)]">
-        Register
-        <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-      </span>
+      <div className="mt-5 flex w-full items-center justify-between">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 font-mono text-[11px] font-semibold text-slate-600">
+          <CalendarDays className="size-3.5 text-[var(--color-electric)]" />
+          {event.category === "Technical" ? "23 Sep" : "24 Sep"}
+        </span>
+        <span className="inline-flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-electric)]">
+          Register
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+        </span>
+      </div>
     </button>
   );
 }
@@ -1382,8 +1413,8 @@ export function Events() {
 
   const filters: { key: Filter; label: string }[] = [
     { key: "All", label: "All Events" },
-    { key: "Technical", label: "Technical" },
-    { key: "Non-Technical", label: "Non-Technical" },
+    { key: "Technical", label: "Technical (23rd Sep)" },
+    { key: "Non-Technical", label: "Non-Technical (24th Sep)" },
   ];
 
   return (
@@ -1450,16 +1481,27 @@ export function Events() {
                 <Cpu className="size-5" />
               </span>
               <div className="flex flex-col">
-                <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-[var(--color-electric)]">
-                  Flagship Track
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-[var(--color-electric)]">
+                    Flagship Track
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-electric)]/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--color-electric)] sm:hidden">
+                    <CalendarDays className="size-3" /> 23rd Sept
+                  </span>
+                </div>
                 <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-[var(--color-ink)] sm:text-3xl">
                   Technical Events
                 </h3>
               </div>
-              <span className="ml-auto rounded-full bg-[var(--color-electric)]/10 px-3 py-1 font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-electric)]">
-                {technical.length} Events
-              </span>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-[var(--color-electric)]/25 bg-white px-3.5 py-1 font-display text-xs font-bold uppercase tracking-wider text-[var(--color-electric)] shadow-sm">
+                  <CalendarDays className="size-3.5 text-[var(--color-electric)]" />
+                  23rd September 2026
+                </span>
+                <span className="rounded-full bg-[var(--color-electric)]/10 px-3 py-1 font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-electric)]">
+                  {technical.length} Events
+                </span>
+              </div>
               <span className="h-px w-full bg-[var(--color-electric)]/15" />
             </div>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -1478,16 +1520,27 @@ export function Events() {
                 <Gamepad2 className="size-5" />
               </span>
               <div className="flex flex-col">
-                <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-[var(--color-flame)]">
-                  Fun Track
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-[var(--color-flame)]">
+                    Fun Track
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-flame)]/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--color-flame)] sm:hidden">
+                    <CalendarDays className="size-3" /> 24th Sept
+                  </span>
+                </div>
                 <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-[var(--color-ink)] sm:text-3xl">
                   Non-Technical Events
                 </h3>
               </div>
-              <span className="ml-auto rounded-full bg-[var(--color-flame)]/10 px-3 py-1 font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-flame)]">
-                {nonTechnical.length} Events
-              </span>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-[var(--color-flame)]/25 bg-white px-3.5 py-1 font-display text-xs font-bold uppercase tracking-wider text-[var(--color-flame)] shadow-sm">
+                  <CalendarDays className="size-3.5 text-[var(--color-flame)]" />
+                  24th September 2026
+                </span>
+                <span className="rounded-full bg-[var(--color-flame)]/10 px-3 py-1 font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-flame)]">
+                  {nonTechnical.length} Events
+                </span>
+              </div>
               <span className="h-px w-full bg-[var(--color-flame)]/20" />
             </div>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

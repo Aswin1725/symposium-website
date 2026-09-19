@@ -57,8 +57,9 @@ const links: { label: string; view: View; icon: typeof Home }[] = [
 
 const tickerItems = [
   "NEXTRON-2026 conducted by ECE (Electronics and Communication Engineering)",
+  "23rd September 2026: Technical Events",
+  "24th September 2026: Non-Technical Events",
   "WIN up to ₹60K Prize Money",
-  "23 & 24 September 2026",
 ];
 
 function TickerContent() {
