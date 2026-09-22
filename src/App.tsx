@@ -10,7 +10,6 @@ import AdminDashboard from "@/components/AdminDashboard";
 import CoordinatorDashboard from "@/components/CoordinatorDashboard";
 import { validateSession, logoutUser, type Session } from "@/lib/auth";
 import { ViewId } from "@/components/ViewId";
-import CertificatePreview from "@/components/CertificatePreview";
 
 export type View = "home" | "events" | "status" | "login";
 
@@ -48,10 +47,6 @@ export default function App() {
   // Simple standalone routes
   if (currentPath === "/view-id") {
     return <ViewId />;
-  }
-
-  if (currentPath === "/certificate-preview") {
-    return <CertificatePreview />;
   }
 
   const navigate = (v: View) => {
