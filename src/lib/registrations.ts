@@ -10,6 +10,7 @@ import type {
   Registration,
   Member,
   RegStatus,
+  AttendanceStatus,
   RegistrationRowWithEvent,
   MemberRow,
   PaymentRow,
@@ -20,6 +21,7 @@ export type {
   Registration,
   Member,
   RegStatus,
+  AttendanceStatus,
 };
 
 
@@ -37,6 +39,7 @@ async function assembleRegistration(
   const members: Member[] =
     await Promise.all(
       memberRows.map(async (m) => ({
+        id: m.id,
         name: m.full_name,
         phone: m.phone,
         email: m.email,
@@ -869,6 +872,7 @@ export async function fetchScopedRegistrations(
     data.map(async (item: any) => {
       const members: Member[] = await Promise.all(
         (item.members || []).map(async (m: any) => ({
+          id: m.id,
           name: m.name,
           phone: m.phone,
           email: m.email,
@@ -879,6 +883,13 @@ export async function fetchScopedRegistrations(
             ? m.id_card_path.split("/").pop() ?? ""
             : "",
           idCardPath: m.id_card_path || null,
+          attendanceStatus:
+            m.attendance_status === "PRESENT" ||
+            m.attendance_status === "ABSENT"
+              ? m.attendance_status
+              : null,
+          attendanceMarkedAt: m.attendance_marked_at ?? null,
+          attendanceMarkedBy: m.attendance_marked_by ?? null,
         })),
       );
 
@@ -917,6 +928,71 @@ export async function fetchScopedRegistrations(
     }),
   );
 }
+
+// ---------------------------------------------------------------------------
+// Member attendance
+// ---------------------------------------------------------------------------
+
+export async function setMemberAttendance(
+  token: string,
+  memberId: string,
+  status: AttendanceStatus | "CLEAR",
+): Promise<{
+  success: boolean;
+  error?: string;
+  attendance_status?: AttendanceStatus | null;
+  marked_by?: string;
+  marked_at?: string;
+}> {
+  if (!token) {
+    return {
+      success: false,
+      error: "Session token is missing. Please log in again.",
+    };
+  }
+
+  if (!memberId) {
+    return {
+      success: false,
+      error: "Member ID is missing.",
+    };
+  }
+
+  const { data, error } = await supabase.rpc(
+    "set_member_attendance",
+    {
+      p_token: token,
+      p_member_id: memberId,
+      p_status: status,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "setMemberAttendance RPC error:",
+      error,
+    );
+
+    return {
+      success: false,
+      error:
+        error.message ||
+        "Failed to update attendance.",
+    };
+  }
+
+  if (!data || !data.success) {
+    return {
+      success: false,
+      error:
+        data?.error ||
+        "Failed to update attendance.",
+    };
+  }
+
+  return data;
+}
+
 
 // ---------------------------------------------------------------------------
 // Verify payment & registration action: ACCEPT or REJECT
