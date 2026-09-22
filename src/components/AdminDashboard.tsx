@@ -17,14 +17,18 @@ import {
   Mail,
   User,
   Check,
+  Award,
+  RefreshCw,
 } from "lucide-react";
 
 import {
   fetchScopedRegistrations,
+  fetchParticipationCertificateCandidates,
   adminManageCoordinators,
   isPaymentVerified,
   type Registration,
   type CoordinatorRecord,
+  type ParticipationCertificateCandidate,
 } from "@/lib/registrations";
 
 import { ALL_EVENTS, type Session } from "@/lib/auth";
@@ -256,7 +260,10 @@ export function exportAllToExcel(allRegistrations: Registration[]) {
    ADMIN DASHBOARD
    ========================================================= */
 
-type AdminTab = "registrations" | "coordinators";
+type AdminTab =
+  | "registrations"
+  | "certificates"
+  | "coordinators";
 
 export function AdminDashboard({
   session,
@@ -281,6 +288,14 @@ export function AdminDashboard({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState<Registration | null | "notfound">(null);
   const [searching, setSearching] = useState(false);
+
+  // Certificate candidate state
+  const [certificateCandidates, setCertificateCandidates] =
+    useState<ParticipationCertificateCandidate[]>([]);
+  const [loadingCandidates, setLoadingCandidates] =
+    useState(false);
+  const [candidateError, setCandidateError] =
+    useState("");
 
   // Coordinators management state
   const [coordinators, setCoordinators] = useState<CoordinatorRecord[]>([]);
@@ -321,6 +336,44 @@ export function AdminDashboard({
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
+
+  /* =======================================================
+     FETCH CERTIFICATE CANDIDATES
+     ======================================================= */
+
+  const fetchCertificateCandidates = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      setLoadingCandidates(true);
+      setCandidateError("");
+
+      const data =
+        await fetchParticipationCertificateCandidates(token);
+
+      setCertificateCandidates(data);
+    } catch (err) {
+      console.error(
+        "Failed to load certificate candidates:",
+        err,
+      );
+
+      setCandidateError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load certificate candidates.",
+      );
+    } finally {
+      setLoadingCandidates(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (activeTab === "certificates") {
+      fetchCertificateCandidates();
+    }
+  }, [activeTab, fetchCertificateCandidates]);
+
 
   /* =======================================================
      FETCH COORDINATORS
@@ -568,6 +621,19 @@ export function AdminDashboard({
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab("certificates")}
+            className={`flex items-center gap-2 border-b-2 px-6 py-3 font-display text-sm font-bold uppercase tracking-wider transition-all ${
+              activeTab === "certificates"
+                ? "border-[var(--color-electric)] text-[var(--color-electric)]"
+                : "border-transparent text-slate-500 hover:text-[var(--color-ink)]"
+            }`}
+          >
+            <Award className="size-4" />
+            Certificates
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab("coordinators")}
             className={`flex items-center gap-2 border-b-2 px-6 py-3 font-display text-sm font-bold uppercase tracking-wider transition-all ${
               activeTab === "coordinators"
@@ -744,7 +810,144 @@ export function AdminDashboard({
           </div>
         )}
 
-        {/* TAB 2: COORDINATOR MANAGEMENT */}
+        {/* TAB 2: PARTICIPATION CERTIFICATES */}
+        {activeTab === "certificates" && (
+          <div className="mt-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Award className="size-5 text-[var(--color-electric)]" />
+                  <h3 className="font-display text-xl font-bold uppercase text-[var(--color-ink)]">
+                    Participation Certificates
+                  </h3>
+                </div>
+
+                <p className="mt-1 max-w-2xl text-sm text-slate-500">
+                  Eligible participants are PRESENT attendees who are not
+                  marked as prize winners. Prize winners receive their
+                  certificates offline.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={fetchCertificateCandidates}
+                disabled={loadingCandidates}
+                className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-electric)]/25 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--color-electric)] transition-colors hover:bg-[var(--color-electric)]/5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <RefreshCw
+                  className={`size-4 ${
+                    loadingCandidates ? "animate-spin" : ""
+                  }`}
+                />
+                Refresh
+              </button>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <StatTile
+                label="Eligible Participants"
+                value={certificateCandidates.length}
+                tone="green"
+              />
+
+              <StatTile
+                label="Certificate Type"
+                value="Participation"
+                tone="blue"
+              />
+
+              <StatTile
+                label="Prize Winners"
+                value="Excluded"
+                tone="amber"
+              />
+            </div>
+
+            {candidateError && (
+              <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {candidateError}
+              </div>
+            )}
+
+            <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--color-electric)]/15 bg-white shadow-sm">
+              <div className="border-b border-slate-100 px-5 py-4">
+                <p className="font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-ink)]">
+                  Eligible Participants ({certificateCandidates.length})
+                </p>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Read-only verification stage. Certificate issuance is
+                  intentionally disabled for now.
+                </p>
+              </div>
+
+              {loadingCandidates ? (
+                <div className="py-16 text-center">
+                  <RefreshCw className="mx-auto size-6 animate-spin text-slate-300" />
+                  <p className="mt-3 text-sm text-slate-400">
+                    Loading eligible participants…
+                  </p>
+                </div>
+              ) : certificateCandidates.length === 0 ? (
+                <div className="flex flex-col items-center py-16 text-center">
+                  <Award className="size-10 text-slate-300" />
+                  <p className="mt-3 text-sm font-medium text-slate-500">
+                    No participants are currently eligible.
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Mark a participant PRESENT to test the candidate pipeline.
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {certificateCandidates.map((candidate, index) => (
+                    <div
+                      key={candidate.member_id}
+                      className="flex flex-wrap items-center justify-between gap-4 px-5 py-4"
+                    >
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 font-mono text-xs font-bold text-emerald-700">
+                          {index + 1}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="font-display text-sm font-bold text-[var(--color-ink)]">
+                            {candidate.name}
+                          </p>
+
+                          <p className="mt-0.5 text-xs text-slate-500">
+                            {candidate.college}
+                          </p>
+
+                          <p className="mt-1 break-all text-xs text-slate-400">
+                            {candidate.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">
+                          PRESENT
+                        </span>
+
+                        <span className="rounded-full bg-[var(--color-electric)]/10 px-2.5 py-1 font-medium text-[var(--color-electric)]">
+                          {candidate.event}
+                        </span>
+
+                        <span className="font-mono text-slate-400">
+                          {candidate.registration_number}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: COORDINATOR MANAGEMENT */}
         {activeTab === "coordinators" && (
           <div className="mt-8">
             <div className="flex flex-wrap items-center justify-between gap-4">

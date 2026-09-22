@@ -1,6 +1,7 @@
 // ── Database row shapes ── exactly matching Supabase schema columns ──────────
 
 export type RegStatus = "pending" | "accepted" | "rejected";
+export type AttendanceStatus = "PRESENT" | "ABSENT";
 
 /** events table */
 export type EventRow = {
@@ -71,6 +72,8 @@ export type PaymentRow = {
  * name maps from DB full_name.
  */
 export type Member = {
+  /** Database member UUID. Present for persisted registrations. */
+  id?: string;
   name: string;        // mapped from members.full_name
   phone: string;
   email: string;
@@ -79,6 +82,19 @@ export type Member = {
   idCardName: string;
   /** Raw storage path stored in members.id_card_path */
   idCardPath: string | null;
+
+  /** Member-level symposium attendance. Null means not marked yet. */
+  attendanceStatus?: AttendanceStatus | null;
+  attendanceMarkedAt?: string | null;
+  attendanceMarkedBy?: string | null;
+
+  /**
+   * Prize winners receive their certificate offline and are excluded
+   * from the online participation-certificate pipeline.
+   */
+  isPrizeWinner?: boolean;
+  prizeWinnerMarkedAt?: string | null;
+  prizeWinnerMarkedBy?: string | null;
 };
 
 /** Registration shape consumed by AdminDashboard, CoordinatorDashboard, RegistrationStatus */

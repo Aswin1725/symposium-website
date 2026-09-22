@@ -15,6 +15,7 @@ import {
   type RegStatus,
 } from "@/lib/registrations";
 import { getPaymentProofSignedUrl } from "@/lib/storage";
+import AttendanceActions from "@/components/AttendanceActions";
 
 const statusMeta: Record<
   RegStatus,
@@ -347,7 +348,7 @@ export function RegistrationCard({
       <div className="mt-4 space-y-2">
         {reg.members.map((m, i) => (
           <div
-            key={i}
+            key={m.id ?? i}
             className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-[var(--color-paper)] px-3 py-2 text-sm"
           >
             <span className="font-medium text-[var(--color-ink)]">
@@ -380,6 +381,12 @@ export function RegistrationCard({
                 No ID
               </span>
             )}
+
+            <AttendanceActions
+              member={m}
+              token={token}
+              onStatusUpdated={onStatusUpdated}
+            />
           </div>
         ))}
       </div>
@@ -544,7 +551,7 @@ export function SearchResultCard({
         <div className="space-y-2">
           {reg.members.map((m, i) => (
             <div
-              key={i}
+              key={m.id ?? i}
               className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-[var(--color-paper)] px-3 py-2 text-sm"
             >
               <span className="font-medium text-[var(--color-ink)]">
@@ -570,6 +577,12 @@ export function SearchResultCard({
               ) : (
                 <span className="ml-auto text-xs text-slate-400">No ID</span>
               )}
+
+              <AttendanceActions
+                member={m}
+                token={token}
+                onStatusUpdated={onStatusUpdated}
+              />
             </div>
           ))}
         </div>

@@ -1,0 +1,155 @@
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+
+.nextron-certificate,
+.nextron-certificate * {
+  box-sizing: border-box;
+}
+
+.nextron-certificate {
+  width: 297mm;
+  height: 210mm;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  color: #111;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.certificate-template-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  user-select: none;
+  pointer-events: none;
+}
+
+/*
+ * The supplied template is a full-page certificate image exported by
+ * pdf2htmlEX. These two fields sit directly over its dotted recipient lines.
+ * Their white background hides only the dots beneath the actual value while
+ * retaining the rest of the original certificate artwork unchanged.
+ */
+.certificate-name-field {
+  position: absolute;
+  top: 82.6mm;
+  left: 146mm;
+  right: 19mm;
+  height: 8.8mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.certificate-fill-name {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.5mm 2.1mm 0.7mm;
+  background: #fff;
+  color: #111827;
+  font-size: 5.5mm;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.certificate-fill-name--md { font-size: 5.1mm; }
+.certificate-fill-name--sm { font-size: 4.7mm; }
+.certificate-fill-name--xs { font-size: 4.3mm; }
+
+.certificate-institution-field {
+  position: absolute;
+  top: 92.9mm;
+  left: 42mm;
+  right: 19mm;
+  height: 8.6mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.certificate-fill-institution {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.45mm 2.2mm 0.65mm;
+  background: #fff;
+  color: #111827;
+  font-size: 4.7mm;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+}
+
+.certificate-preview-shell {
+  min-height: 100vh;
+  overflow: auto;
+  background: #e7ebf2;
+  padding: 24px;
+}
+
+.certificate-preview-toolbar {
+  width: 297mm;
+  max-width: 100%;
+  margin: 0 auto 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.certificate-preview-toolbar button {
+  border: 0;
+  border-radius: 10px;
+  background: #153b7d;
+  color: #fff;
+  padding: 10px 16px;
+  font: 600 13px/1 Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.certificate-preview-frame {
+  width: fit-content;
+  margin: 0 auto;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.22);
+}
+
+@media print {
+  html,
+  body {
+    width: 297mm;
+    height: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .certificate-preview-toolbar {
+    display: none !important;
+  }
+
+  .certificate-preview-shell {
+    min-height: 0;
+    overflow: visible;
+    padding: 0;
+    background: #fff;
+  }
+
+  .certificate-preview-frame {
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .nextron-certificate {
+    break-after: page;
+    page-break-after: always;
+  }
+}

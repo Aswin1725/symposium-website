@@ -44,7 +44,7 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // Simple routing for /view-id
+  // Simple standalone routes
   if (currentPath === "/view-id") {
     return <ViewId />;
   }

@@ -10,6 +10,7 @@ import type {
   Registration,
   Member,
   RegStatus,
+  AttendanceStatus,
   RegistrationRowWithEvent,
   MemberRow,
   PaymentRow,
@@ -20,6 +21,7 @@ export type {
   Registration,
   Member,
   RegStatus,
+  AttendanceStatus,
 };
 
 
@@ -37,6 +39,7 @@ async function assembleRegistration(
   const members: Member[] =
     await Promise.all(
       memberRows.map(async (m) => ({
+        id: m.id,
         name: m.full_name,
         phone: m.phone,
         email: m.email,
@@ -869,6 +872,7 @@ export async function fetchScopedRegistrations(
     data.map(async (item: any) => {
       const members: Member[] = await Promise.all(
         (item.members || []).map(async (m: any) => ({
+          id: m.id,
           name: m.name,
           phone: m.phone,
           email: m.email,
@@ -879,6 +883,17 @@ export async function fetchScopedRegistrations(
             ? m.id_card_path.split("/").pop() ?? ""
             : "",
           idCardPath: m.id_card_path || null,
+          attendanceStatus:
+            m.attendance_status === "PRESENT" ||
+            m.attendance_status === "ABSENT"
+              ? m.attendance_status
+              : null,
+          attendanceMarkedAt: m.attendance_marked_at ?? null,
+          attendanceMarkedBy: m.attendance_marked_by ?? null,
+
+          isPrizeWinner: m.is_prize_winner === true,
+          prizeWinnerMarkedAt: m.prize_winner_marked_at ?? null,
+          prizeWinnerMarkedBy: m.prize_winner_marked_by ?? null,
         })),
       );
 
@@ -917,6 +932,197 @@ export async function fetchScopedRegistrations(
     }),
   );
 }
+
+// ---------------------------------------------------------------------------
+// Member attendance
+// ---------------------------------------------------------------------------
+
+export async function setMemberAttendance(
+  token: string,
+  memberId: string,
+  status: AttendanceStatus | "CLEAR",
+): Promise<{
+  success: boolean;
+  error?: string;
+  attendance_status?: AttendanceStatus | null;
+  marked_by?: string;
+  marked_at?: string;
+}> {
+  if (!token) {
+    return {
+      success: false,
+      error: "Session token is missing. Please log in again.",
+    };
+  }
+
+  if (!memberId) {
+    return {
+      success: false,
+      error: "Member ID is missing.",
+    };
+  }
+
+  const { data, error } = await supabase.rpc(
+    "set_member_attendance",
+    {
+      p_token: token,
+      p_member_id: memberId,
+      p_status: status,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "setMemberAttendance RPC error:",
+      error,
+    );
+
+    return {
+      success: false,
+      error:
+        error.message ||
+        "Failed to update attendance.",
+    };
+  }
+
+  if (!data || !data.success) {
+    return {
+      success: false,
+      error:
+        data?.error ||
+        "Failed to update attendance.",
+    };
+  }
+
+  return data;
+}
+
+
+// ---------------------------------------------------------------------------
+// Prize-winner exclusion
+//
+// Prize winners receive their certificate offline and are therefore
+// excluded from online participation certificates.
+// ---------------------------------------------------------------------------
+
+export async function setMemberPrizeWinner(
+  token: string,
+  memberId: string,
+  isWinner: boolean,
+): Promise<{
+  success: boolean;
+  error?: string;
+  is_prize_winner?: boolean;
+  marked_by?: string;
+  marked_at?: string;
+}> {
+  if (!token) {
+    return {
+      success: false,
+      error: "Session token is missing. Please log in again.",
+    };
+  }
+
+  if (!memberId) {
+    return {
+      success: false,
+      error: "Member ID is missing.",
+    };
+  }
+
+  const { data, error } = await supabase.rpc(
+    "set_member_prize_winner",
+    {
+      p_token: token,
+      p_member_id: memberId,
+      p_is_winner: isWinner,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "setMemberPrizeWinner RPC error:",
+      error,
+    );
+
+    return {
+      success: false,
+      error:
+        error.message ||
+        "Failed to update prize-winner status.",
+    };
+  }
+
+  if (!data || !data.success) {
+    return {
+      success: false,
+      error:
+        data?.error ||
+        "Failed to update prize-winner status.",
+    };
+  }
+
+  return data;
+}
+
+
+// ---------------------------------------------------------------------------
+// Participation certificate candidates
+// Admin-only read model. This does NOT issue a certificate.
+// ---------------------------------------------------------------------------
+
+export type ParticipationCertificateCandidate = {
+  member_id: string;
+  name: string;
+  email: string;
+  college: string;
+  registration_number: string;
+  event: string;
+  attendance_marked_at: string | null;
+};
+
+export async function fetchParticipationCertificateCandidates(
+  token: string,
+): Promise<ParticipationCertificateCandidate[]> {
+  if (!token) {
+    throw new Error("Session token is missing. Please log in again.");
+  }
+
+  const { data, error } = await supabase.rpc(
+    "get_participation_certificate_candidates",
+    {
+      p_token: token,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "fetchParticipationCertificateCandidates RPC error:",
+      error,
+    );
+
+    throw new Error(
+      error.message ||
+        "Failed to load participation certificate candidates.",
+    );
+  }
+
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map((item: any) => ({
+    member_id: item.member_id,
+    name: item.name,
+    email: item.email,
+    college: item.college,
+    registration_number: item.registration_number,
+    event: item.event,
+    attendance_marked_at:
+      item.attendance_marked_at ?? null,
+  }));
+}
+
 
 // ---------------------------------------------------------------------------
 // Verify payment & registration action: ACCEPT or REJECT
