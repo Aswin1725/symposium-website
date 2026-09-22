@@ -87,6 +87,14 @@ export type Member = {
   attendanceStatus?: AttendanceStatus | null;
   attendanceMarkedAt?: string | null;
   attendanceMarkedBy?: string | null;
+
+  /**
+   * Prize winners receive their certificate offline and are excluded
+   * from the online participation-certificate pipeline.
+   */
+  isPrizeWinner?: boolean;
+  prizeWinnerMarkedAt?: string | null;
+  prizeWinnerMarkedBy?: string | null;
 };
 
 /** Registration shape consumed by AdminDashboard, CoordinatorDashboard, RegistrationStatus */

@@ -890,6 +890,10 @@ export async function fetchScopedRegistrations(
               : null,
           attendanceMarkedAt: m.attendance_marked_at ?? null,
           attendanceMarkedBy: m.attendance_marked_by ?? null,
+
+          isPrizeWinner: m.is_prize_winner === true,
+          prizeWinnerMarkedAt: m.prize_winner_marked_at ?? null,
+          prizeWinnerMarkedBy: m.prize_winner_marked_by ?? null,
         })),
       );
 
@@ -987,6 +991,74 @@ export async function setMemberAttendance(
       error:
         data?.error ||
         "Failed to update attendance.",
+    };
+  }
+
+  return data;
+}
+
+
+// ---------------------------------------------------------------------------
+// Prize-winner exclusion
+//
+// Prize winners receive their certificate offline and are therefore
+// excluded from online participation certificates.
+// ---------------------------------------------------------------------------
+
+export async function setMemberPrizeWinner(
+  token: string,
+  memberId: string,
+  isWinner: boolean,
+): Promise<{
+  success: boolean;
+  error?: string;
+  is_prize_winner?: boolean;
+  marked_by?: string;
+  marked_at?: string;
+}> {
+  if (!token) {
+    return {
+      success: false,
+      error: "Session token is missing. Please log in again.",
+    };
+  }
+
+  if (!memberId) {
+    return {
+      success: false,
+      error: "Member ID is missing.",
+    };
+  }
+
+  const { data, error } = await supabase.rpc(
+    "set_member_prize_winner",
+    {
+      p_token: token,
+      p_member_id: memberId,
+      p_is_winner: isWinner,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "setMemberPrizeWinner RPC error:",
+      error,
+    );
+
+    return {
+      success: false,
+      error:
+        error.message ||
+        "Failed to update prize-winner status.",
+    };
+  }
+
+  if (!data || !data.success) {
+    return {
+      success: false,
+      error:
+        data?.error ||
+        "Failed to update prize-winner status.",
     };
   }
 
