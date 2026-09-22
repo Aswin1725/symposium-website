@@ -1067,6 +1067,64 @@ export async function setMemberPrizeWinner(
 
 
 // ---------------------------------------------------------------------------
+// Participation certificate candidates
+// Admin-only read model. This does NOT issue a certificate.
+// ---------------------------------------------------------------------------
+
+export type ParticipationCertificateCandidate = {
+  member_id: string;
+  name: string;
+  email: string;
+  college: string;
+  registration_number: string;
+  event: string;
+  attendance_marked_at: string | null;
+};
+
+export async function fetchParticipationCertificateCandidates(
+  token: string,
+): Promise<ParticipationCertificateCandidate[]> {
+  if (!token) {
+    throw new Error("Session token is missing. Please log in again.");
+  }
+
+  const { data, error } = await supabase.rpc(
+    "get_participation_certificate_candidates",
+    {
+      p_token: token,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "fetchParticipationCertificateCandidates RPC error:",
+      error,
+    );
+
+    throw new Error(
+      error.message ||
+        "Failed to load participation certificate candidates.",
+    );
+  }
+
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map((item: any) => ({
+    member_id: item.member_id,
+    name: item.name,
+    email: item.email,
+    college: item.college,
+    registration_number: item.registration_number,
+    event: item.event,
+    attendance_marked_at:
+      item.attendance_marked_at ?? null,
+  }));
+}
+
+
+// ---------------------------------------------------------------------------
 // Verify payment & registration action: ACCEPT or REJECT
 // Preserves proof in remarks, updates DB & triggers Google Sheets webhook
 // ---------------------------------------------------------------------------
