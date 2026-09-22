@@ -203,11 +203,11 @@ const events: EventItem[] = [
     tagline: "Build the web, live",
     category: "Technical",
     fee: "₹50 / head",
-    teamSize: "1–2 members",
+    teamSize: "1–3 members",
     rules: [
       "Websites must be created within the given time using approved tools/editors.",
       "External repositories, pre-written templates, copied code and unauthorized resources are not allowed.",
-      "AI assistance is prohibited as per the event rules.",
+      "AI tools and AI assistance are allowed during the event.",
       "Creativity, UI/UX, functionality, responsiveness and code quality are evaluated.",
     ],
     coordinators: [
