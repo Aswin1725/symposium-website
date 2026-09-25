@@ -7,7 +7,7 @@ import {
   Ticket,
   CalendarDays,
 } from "lucide-react";
-import { findRegistration, isPaymentVerified, type Registration } from "@/lib/registrations";
+import { findRegistration, isPaymentVerified, isPaymentRejected, type Registration } from "@/lib/registrations";
 
 const TECHNICAL_EVENTS = [
   "Paper Presentation",
@@ -96,9 +96,7 @@ export function RegistrationStatus() {
         {result.kind === "found" &&
           (() => {
             const isPaid = isPaymentVerified(result.reg);
-            const isRejected =
-              result.reg.status === "rejected" ||
-              result.reg.paymentStatus?.toUpperCase() === "FAILED";
+            const isRejected = isPaymentRejected(result.reg);
 
             return (
               <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-electric)]/15 bg-white shadow-sm">

@@ -3,6 +3,7 @@ import { LogOut, Users, Inbox, Search, X, FileSpreadsheet, Layers } from "lucide
 import {
   fetchScopedRegistrations,
   isPaymentVerified,
+  isPaymentRejected,
   type Registration,
 } from "@/lib/registrations";
 import { RegistrationCard, SearchResultCard, StatTile } from "@/components/dashboard-ui";
@@ -67,13 +68,14 @@ export function CoordinatorDashboard({
     total: regs.length,
     members: regs.reduce((s, r) => s + r.members.length, 0),
     payVerified: regs.filter((r) => isPaymentVerified(r)).length,
-    payPending: regs.filter((r) => !isPaymentVerified(r)).length,
+    payPending: regs.filter((r) => !isPaymentVerified(r) && !isPaymentRejected(r)).length,
+    payRejected: regs.filter((r) => isPaymentRejected(r)).length,
     expectedRevenue: regs.reduce((s, r) => s + (r.amount || 0), 0),
     collectedRevenue: regs
       .filter((r) => isPaymentVerified(r))
       .reduce((s, r) => s + (r.amount || 0), 0),
     pendingRevenue: regs
-      .filter((r) => !isPaymentVerified(r))
+      .filter((r) => !isPaymentVerified(r) && !isPaymentRejected(r))
       .reduce((s, r) => s + (r.amount || 0), 0),
   };
 
@@ -146,11 +148,12 @@ export function CoordinatorDashboard({
         )}
 
         {/* Team & Member Stats */}
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
           <StatTile label="Registered Teams" value={stats.total} tone="blue" />
           <StatTile label="Total Members" value={stats.members} />
           <StatTile label="Payment Pending" value={stats.payPending} tone="amber" />
           <StatTile label="Accepted / Verified" value={stats.payVerified} tone="green" />
+          <StatTile label="Rejected" value={stats.payRejected} tone="red" />
         </div>
 
         {/* Collection Summary Revenue */}

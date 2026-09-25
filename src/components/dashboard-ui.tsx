@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import {
   isPaymentVerified,
+  isPaymentRejected,
   verifyPaymentStatus,
   type Registration,
   type RegStatus,
@@ -107,8 +108,8 @@ export function PaymentActions({
   const [loading, setLoading] = useState(false);
   const [actionError, setActionError] = useState("");
 
-  const isVerified = reg.paymentStatus?.toUpperCase() === "VERIFIED";
-  const isRejected = reg.paymentStatus?.toUpperCase() === "FAILED";
+  const isVerified = isPaymentVerified(reg);
+  const isRejected = isPaymentRejected(reg);
 
   const handleConfirm = async () => {
     if (!pendingAction) return;
@@ -312,6 +313,7 @@ export function RegistrationCard({
   } | null>(null);
 
   const isPaid = isPaymentVerified(reg);
+  const isRejected = isPaymentRejected(reg);
   const payMethod = reg.paymentMethod?.split("|")[0]?.trim() || "UPI";
 
   return (
@@ -336,10 +338,18 @@ export function RegistrationCard({
           <StatusBadge status={reg.status} />
           <span
             className={`text-xs font-medium ${
-              isPaid ? "text-emerald-600" : "text-amber-600"
+              isPaid
+                ? "text-emerald-600"
+                : isRejected
+                ? "text-red-600"
+                : "text-amber-600"
             }`}
           >
-            Payment {isPaid ? "Verified" : "Pending"}
+            {isPaid
+              ? "Payment Verified"
+              : isRejected
+              ? "Payment Rejected"
+              : "Payment Pending"}
           </span>
         </div>
       </div>
@@ -395,7 +405,7 @@ export function RegistrationCard({
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-electric)]/10 pt-4">
         <div className="flex flex-col gap-0.5">
           <span className="font-display text-xs uppercase tracking-widest text-slate-400">
-            {isPaid ? "Amount Paid" : "Amount to Verify"}
+            {isPaid ? "Amount Paid" : isRejected ? "Payment Rejected" : "Amount to Verify"}
           </span>
           <span className="font-display text-lg font-bold text-[var(--color-ink)]">
             ₹{reg.amount}
@@ -495,6 +505,7 @@ export function SearchResultCard({
 }) {
   const [zoom, setZoom] = useState<{ src: string; label: string } | null>(null);
   const isPaid = isPaymentVerified(reg);
+  const isRejected = isPaymentRejected(reg);
   const payMethod = reg.paymentMethod?.split("|")[0]?.trim() || "UPI";
 
   return (
@@ -509,7 +520,7 @@ export function SearchResultCard({
         </div>
         <div className="text-right">
           <p className="font-display text-xs uppercase tracking-widest text-slate-400">
-            {isPaid ? "Amount Paid" : "Amount to Collect"}
+            {isPaid ? "Amount Paid" : isRejected ? "Payment Rejected" : "Amount to Collect"}
           </p>
           <p className="mt-0.5 font-display text-2xl font-bold text-[var(--color-ink)]">₹{reg.amount}</p>
         </div>
@@ -523,14 +534,17 @@ export function SearchResultCard({
           ["College", reg.college],
           ["Team Size", `${reg.members.length} member${reg.members.length !== 1 ? "s" : ""}`],
           ["Total Amount", `₹${reg.amount}`],
-          ["Payment Status", isPaid ? "VERIFIED" : "PENDING"],
+          ["Payment Status", isPaid ? "VERIFIED" : isRejected ? "REJECTED" : "PENDING"],
+          ["Registration Status", reg.status ? reg.status.toUpperCase() : "PENDING"],
           ["Payment Method", payMethod],
         ].map(([label, value]) => (
           <div key={label} className="flex justify-between gap-4 border-b border-slate-100 py-1.5">
             <dt className="text-slate-500">{label}</dt>
             <dd
               className={`text-right font-medium ${
-                label === "Payment Status" && !isPaid
+                label === "Payment Status" && isRejected
+                  ? "text-red-600"
+                  : label === "Payment Status" && !isPaid
                   ? "text-amber-600"
                   : label === "Payment Status" && isPaid
                   ? "text-emerald-600"
@@ -592,6 +606,8 @@ export function SearchResultCard({
           <div className="text-sm">
             {isPaid ? (
               <p className="font-medium text-emerald-600">✓ Payment has been verified.</p>
+            ) : isRejected ? (
+              <p className="font-medium text-red-600">✕ Registration has been rejected.</p>
             ) : (
               <p className="font-medium text-amber-600">
                 ⚠ Payment pending coordinator verification.

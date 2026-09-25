@@ -168,16 +168,12 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Unauthorized: You are not assigned to this event');
   END IF;
 
-  -- Fetch payment record
+  -- Fetch payment record (or prepare to create one if not yet present)
   SELECT * INTO v_pay
   FROM public.payments
   WHERE registration_id = p_registration_id
   ORDER BY created_at DESC
   LIMIT 1;
-
-  IF v_pay IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Payment record not found for this registration');
-  END IF;
 
   v_action := upper(trim(p_action));
 
@@ -186,18 +182,38 @@ BEGIN
     SET registration_status = 'ACCEPTED'
     WHERE id = p_registration_id;
 
-    UPDATE public.payments
-    SET payment_status = 'VERIFIED',
-        remarks = 'UPI',
-        verified_at = now(),
-        verified_by = v_user.name
-    WHERE id = v_pay.id;
+    IF v_pay IS NULL THEN
+      INSERT INTO public.payments (
+        registration_id,
+        amount,
+        payment_status,
+        remarks,
+        verified_at,
+        verified_by,
+        utr_number
+      ) VALUES (
+        p_registration_id,
+        v_reg.amount,
+        'VERIFIED',
+        'ADMIN_VERIFIED',
+        now(),
+        v_user.name,
+        'DIRECT'
+      ) RETURNING * INTO v_pay;
+    ELSE
+      UPDATE public.payments
+      SET payment_status = 'VERIFIED',
+          remarks = COALESCE(NULLIF(v_pay.remarks, ''), 'UPI'),
+          verified_at = now(),
+          verified_by = v_user.name
+      WHERE id = v_pay.id;
+    END IF;
 
     RETURN jsonb_build_object(
       'success', true,
       'registration_status', 'ACCEPTED',
       'payment_status', 'VERIFIED',
-      'remarks', 'UPI',
+      'remarks', COALESCE(v_pay.remarks, 'UPI'),
       'verified_at', now()
     );
 
@@ -206,12 +222,32 @@ BEGIN
     SET registration_status = 'REJECTED'
     WHERE id = p_registration_id;
 
-    UPDATE public.payments
-    SET payment_status = 'FAILED',
-        remarks = 'REJECTED',
-        verified_at = now(),
-        verified_by = v_user.name
-    WHERE id = v_pay.id;
+    IF v_pay IS NULL THEN
+      INSERT INTO public.payments (
+        registration_id,
+        amount,
+        payment_status,
+        remarks,
+        verified_at,
+        verified_by,
+        utr_number
+      ) VALUES (
+        p_registration_id,
+        v_reg.amount,
+        'FAILED',
+        'REJECTED',
+        now(),
+        v_user.name,
+        'REJECTED'
+      ) RETURNING * INTO v_pay;
+    ELSE
+      UPDATE public.payments
+      SET payment_status = 'FAILED',
+          remarks = 'REJECTED',
+          verified_at = now(),
+          verified_by = v_user.name
+      WHERE id = v_pay.id;
+    END IF;
 
     RETURN jsonb_build_object(
       'success', true,

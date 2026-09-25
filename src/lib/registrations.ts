@@ -751,14 +751,27 @@ export async function setRegistrationStatus(
 }
 
 // ---------------------------------------------------------------------------
-// Payment verification
+// Payment verification & rejection checks
 // ---------------------------------------------------------------------------
 
 export function isPaymentVerified(
   r: Registration,
 ): boolean {
   return (
-    r.paymentStatus?.toUpperCase() === "VERIFIED"
+    (r.paymentStatus?.toUpperCase() === "VERIFIED" || r.status === "accepted") &&
+    r.status !== "rejected" &&
+    r.paymentStatus?.toUpperCase() !== "FAILED" &&
+    r.paymentStatus?.toUpperCase() !== "REJECTED"
+  );
+}
+
+export function isPaymentRejected(
+  r: Registration,
+): boolean {
+  return (
+    r.status === "rejected" ||
+    r.paymentStatus?.toUpperCase() === "FAILED" ||
+    r.paymentStatus?.toUpperCase() === "REJECTED"
   );
 }
 
@@ -1133,6 +1146,33 @@ export async function verifyPaymentStatus(
   registrationId: string,
   action: "ACCEPT" | "REJECT",
 ): Promise<{ success: boolean; error?: string }> {
+  // Ensure a payment row exists before calling RPC so the RPC never fails with "Payment record not found"
+  try {
+    const { data: existingPay } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("registration_id", registrationId)
+      .limit(1);
+
+    if (!existingPay || existingPay.length === 0) {
+      const { data: regRow } = await supabase
+        .from("registrations")
+        .select("amount")
+        .eq("id", registrationId)
+        .single();
+
+      await supabase.from("payments").insert({
+        registration_id: registrationId,
+        amount: regRow?.amount ?? 0,
+        payment_status: "PENDING",
+        remarks: "UPI",
+        utr_number: "DIRECT",
+      });
+    }
+  } catch (err) {
+    console.warn("Payment row check warning:", err);
+  }
+
   const { data, error } = await supabase.rpc(
     "verify_payment_and_registration",
     {

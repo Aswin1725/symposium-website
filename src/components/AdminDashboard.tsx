@@ -26,6 +26,7 @@ import {
   fetchParticipationCertificateCandidates,
   adminManageCoordinators,
   isPaymentVerified,
+  isPaymentRejected,
   type Registration,
   type CoordinatorRecord,
   type ParticipationCertificateCandidate,
@@ -71,7 +72,7 @@ export function exportEventToExcel(
         : (r.paymentProofUrl ? r.paymentProofUrl : "No Proof Uploaded");
 
       const isVerified = isPaymentVerified(r);
-      const isRejected = r.status === "rejected" || (r as any).paymentStatus?.toUpperCase() === "FAILED";
+      const isRejected = isPaymentRejected(r);
       const payStatus = isVerified ? "VERIFIED" : isRejected ? "REJECTED" : "PENDING";
       const regStatus = r.status === "accepted" ? "ACCEPTED" : r.status === "rejected" ? "REJECTED" : "PENDING";
 
@@ -177,7 +178,7 @@ export function exportAllToExcel(allRegistrations: Registration[]) {
         : (r.paymentProofUrl ? r.paymentProofUrl : "No Proof Uploaded");
 
       const isVerified = isPaymentVerified(r);
-      const isRejected = r.status === "rejected" || (r as any).paymentStatus?.toUpperCase() === "FAILED";
+      const isRejected = isPaymentRejected(r);
       const payStatus = isVerified ? "VERIFIED" : isRejected ? "REJECTED" : "PENDING";
       const regStatus = r.status === "accepted" ? "ACCEPTED" : r.status === "rejected" ? "REJECTED" : "PENDING";
 
@@ -562,14 +563,15 @@ export function AdminDashboard({
   const counts = {
     total: all.length,
     members: all.reduce((sum, r) => sum + r.members.length, 0),
-    payPending: all.filter((r) => !isPaymentVerified(r)).length,
+    payPending: all.filter((r) => !isPaymentVerified(r) && !isPaymentRejected(r)).length,
     payVerified: all.filter((r) => isPaymentVerified(r)).length,
+    payRejected: all.filter((r) => isPaymentRejected(r)).length,
     expectedRevenue: all.reduce((sum, r) => sum + (r.amount || 0), 0),
     collectedRevenue: all
       .filter((r) => isPaymentVerified(r))
       .reduce((sum, r) => sum + (r.amount || 0), 0),
     pendingRevenue: all
-      .filter((r) => !isPaymentVerified(r))
+      .filter((r) => !isPaymentVerified(r) && !isPaymentRejected(r))
       .reduce((sum, r) => sum + (r.amount || 0), 0),
   };
 
@@ -650,11 +652,12 @@ export function AdminDashboard({
         {activeTab === "registrations" && (
           <div className="mt-8">
             {/* STATISTICS */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
               <StatTile label="Total Teams" value={counts.total} tone="blue" />
               <StatTile label="Total Members" value={counts.members} />
               <StatTile label="Payment Pending" value={counts.payPending} tone="amber" />
               <StatTile label="Accepted / Verified" value={counts.payVerified} tone="green" />
+              <StatTile label="Rejected" value={counts.payRejected} tone="red" />
             </div>
 
             {/* Collection Summary Revenue */}
